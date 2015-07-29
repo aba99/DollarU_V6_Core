@@ -4316,7 +4316,21 @@ public static String getStatus(ExecutionStatus status) {
 	
 }
   
-    
+    public void setMemorizationOnUproc(String upr) throws UniverseException
+    {
+    	if(uprs.containsKey(upr))
+    	{
+    		Uproc currentUproc=uprs.get(upr);
+    		currentUproc.setFunctionalPeriod(FunctionalPeriod.Day);
+            
+            Memorization memo = new Memorization(Memorization.Type.ONE);
+            memo.setNumber(1);
+            currentUproc.setMemorization(memo);
+            currentUproc.update();
+            System.out.println("Memorization set on UPR "+currentUproc.getName()+" --> OK");
+            
+    	}
+    }
     
     
 }
