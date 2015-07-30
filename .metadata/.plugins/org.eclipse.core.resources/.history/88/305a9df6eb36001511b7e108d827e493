@@ -1,7 +1,6 @@
 package com.orsyp.tools.ps;
 
 
-
 public class CopyOfTest {
 
 	public static void main(String[] args) throws Exception {
@@ -14,13 +13,13 @@ public class CopyOfTest {
 		
 		
 		
+		
 		for(String uprKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
 		{
 			
-			conn.getConnectionList().get(0).setSessionControlOnUproc(uprKey);
-			
-			
-			
+
+				conn.getConnectionList().get(0).setMemorizationOnUproc(uprKey);
+				
 		}
 	}	
 		

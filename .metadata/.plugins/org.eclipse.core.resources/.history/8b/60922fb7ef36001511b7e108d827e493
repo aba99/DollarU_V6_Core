@@ -14,12 +14,11 @@ public class CopyOfTest {
 		
 		
 		
+		
 		for(String uprKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
 		{
 			
 			conn.getConnectionList().get(0).setSessionControlOnUproc(uprKey);
-			
-			
 			
 		}
 	}	

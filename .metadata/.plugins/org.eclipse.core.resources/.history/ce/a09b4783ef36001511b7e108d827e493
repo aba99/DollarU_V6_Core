@@ -1,0 +1,43 @@
+package com.orsyp.tools.ps;
+
+import java.util.Vector;
+
+import com.orsyp.api.uproc.DependencyCondition;
+import com.orsyp.api.uproc.SessionControl;
+import com.orsyp.api.uproc.Uproc;
+
+
+public class CopyOfTest {
+
+	public static void main(String[] args) throws Exception {
+
+		String fileName = args[0];
+		
+		
+		Connector conn = new Connector(fileName,true,"",true,"",true,"");
+	
+		
+		
+		
+		
+		for(String uprKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		{
+			
+			Uproc upr = conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uprKey);
+
+			Vector<DependencyCondition> deps = new Vector<DependencyCondition>(upr.getDependencyConditions());
+			for(int d=0;d<deps.size();d++)
+			{
+				if(deps.get(d).getSessionControl().getType().equals(SessionControl.Type.SAME_SESSION_AND_EXECUTION)
+						&& deps.get(d).getProcessingDateControl().equals("") )
+				{
+					
+				}
+			}
+			
+		}
+	}	
+		
+	
+
+}

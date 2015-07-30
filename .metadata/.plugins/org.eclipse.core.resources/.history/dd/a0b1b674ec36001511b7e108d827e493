@@ -1,5 +1,8 @@
 package com.orsyp.tools.ps;
 
+import java.util.Vector;
+
+import com.orsyp.api.uproc.Uproc;
 
 
 public class CopyOfTest {
@@ -14,12 +17,13 @@ public class CopyOfTest {
 		
 		
 		
+		
 		for(String uprKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
 		{
 			
-			conn.getConnectionList().get(0).setSessionControlOnUproc(uprKey);
-			
-			
+			Uproc upr = conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uprKey);
+
+			Vector<DependencyCondition> deps = new Vector<DependencyCondition>(upr.getDependencyConditions());
 			
 		}
 	}	

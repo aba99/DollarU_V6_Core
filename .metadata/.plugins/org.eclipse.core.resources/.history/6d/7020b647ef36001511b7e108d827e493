@@ -98,7 +98,6 @@ import com.orsyp.api.uproc.DependencyCondition.Status;
 import com.orsyp.api.uproc.MuControl.Type;
 import com.orsyp.api.uproc.DependencyCondition;
 import com.orsyp.api.uproc.LaunchFormula;
-import com.orsyp.api.uproc.ProcessingDateControl;
 import com.orsyp.api.uproc.SessionControl;
 import com.orsyp.api.uproc.Uproc;
 import com.orsyp.api.uproc.UprocFilter;
@@ -4334,43 +4333,7 @@ public static String getStatus(ExecutionStatus status) {
     }
     
     
-    public void setSessionControlOnUproc(String upr) throws UniverseException
-    {//this was developed for AMEX to fix the offset vs SAME_SESSION_AND_EXECUTION issue
-    	
-    	if(uprs.containsKey(upr))
-    	{
-    		Uproc uproc = uprs.get(upr);
-
-			Vector<DependencyCondition> deps = new Vector<DependencyCondition>(uproc.getDependencyConditions());
-			for(int d=0;d<deps.size();d++)
-			{
-				 ProcessingDateControl pdc=deps.get(d).getProcessingDateControl();
-				 ProcessingDateControl.CalendarUnit unit_day = pdc.getCalendarUnitDay();
-				 
-				 ProcessingDateControl.CalendarUnit unit_month = pdc.getCalendarUnitMonth();
-				 ProcessingDateControl.CalendarUnit unit_year = pdc.getCalendarUnitYear();
-
-				 
-				 
-				if(deps.get(d).getSessionControl().getType().equals(SessionControl.Type.SAME_SESSION_AND_EXECUTION)
-						&&(unit_day!=null)&& (unit_month!=null) && (unit_year!=null)
-						&&(!unit_day.getOperator().equals(ProcessingDateControl.Operator.SAME)||
-								!unit_month.getOperator().equals(ProcessingDateControl.Operator.SAME)||
-								!unit_year.getOperator().equals(ProcessingDateControl.Operator.SAME)
-								))
-								
-				{
-					SessionControl sessionControl = new SessionControl();
-					sessionControl.setType(SessionControl.Type.SAME_SESSION);
-					deps.get(d).setSessionControl(sessionControl);
-					System.out.println("-Uproc <"+upr+"> : Dep <"+deps.get(d).getUproc()+"> has been updated");
-					
-				}
-			}
-			uproc.setDependencyConditions(deps);
-			uproc.update();
-    	}
-    }
+    
     
 }
 

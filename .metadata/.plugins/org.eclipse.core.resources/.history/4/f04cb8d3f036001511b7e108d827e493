@@ -4363,7 +4363,6 @@ public static String getStatus(ExecutionStatus status) {
 					SessionControl sessionControl = new SessionControl();
 					sessionControl.setType(SessionControl.Type.SAME_SESSION);
 					deps.get(d).setSessionControl(sessionControl);
-					System.out.println("-Uproc <"+upr+"> : Dep <"+deps.get(d).getUproc()+"> has been updated");
 					
 				}
 			}
