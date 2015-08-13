@@ -129,12 +129,12 @@ public class InsertUprocAndResourceTool_V2 extends GenericViewExtension {
 				
 				
 				//insert uproc in session
-				/*try {
+				try {
 					addToSessionBeforeUproc(conn, sessionName, newUprocName,targetUprocName);
 				} catch (Exception e) {
 					log("Error inserting uproc " + newUprocName + " into session " + sessionName + " before uproc " + targetUprocName );
 					continue;
-				}*/
+				}
 				
 
 				try {
@@ -172,20 +172,11 @@ public class InsertUprocAndResourceTool_V2 extends GenericViewExtension {
 		newNode.setParent(root);
 		SessionAtom sibl = root.getChildOk();		
 		SessionAtom last = sibl;
-		if(sibl==null)
-		{
-			root.setChildOk(newNode);
-			s.update();
-			return;
-		}
 		while (sibl!=null) {
 			last=sibl;
 			sibl=sibl.getNextSibling();
 		}
-		
-		newNode.setPreviousSibling(last);
 		last.setNextSibling(newNode);
-		s.update();
 	}
 			
 	private void addToSessionBeforeUproc(UVMSConnection conn, String sessionName, String newUprocName, String existingUprocName) throws Exception {				
@@ -303,12 +294,11 @@ public class InsertUprocAndResourceTool_V2 extends GenericViewExtension {
 
 		LaunchFormula lf = new LaunchFormula();
 		String text;
-		int depNum;
-		   		
+
 		   		for(int d=0;d<depList.size();d++)
     				{
     			
-					   depNum=depList.get(d).getNum();	
+					   int depNum=depList.get(d).getNum();	
 				        
 				        if(d != (depList.size()-1))
 						{					
@@ -340,7 +330,7 @@ public class InsertUprocAndResourceTool_V2 extends GenericViewExtension {
     			
     			}
 		
-		//log(lf.getFormulaText());
+		log(lf.getFormulaText());
 		
 		upr.setDependencyConditions(depList);
 		upr.setFormula(lf);

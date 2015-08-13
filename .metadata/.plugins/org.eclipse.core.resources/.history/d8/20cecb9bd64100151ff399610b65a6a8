@@ -1,7 +1,5 @@
 package com.orsyp.client.amex;
 
-import com.orsyp.tools.ps.Connector;
-
 
 
 public class CopyOfTest {
