@@ -4341,16 +4341,17 @@ public static String getStatus(ExecutionStatus status) {
     		
     		Uproc currentUproc = uprs.get(upr);
 			Vector<DependencyCondition> curDependencies = currentUproc.getDependencyConditions();
-    		Vector<DependencyCondition> newDependencies = new Vector<DependencyCondition>();
+    		Vector<DependencyCondition> dependencies = new Vector<DependencyCondition>(currentUproc.getDependencyConditions());
 			
 			
 			for(int i=0;i<curDependencies.size();i++)
 			{
 				String curDepName=curDependencies.get(i).getUproc();
 				
-				if(!depconHash.containsKey(curDepName))
+				if(depconHash.containsKey(curDepName))
 				{
-					newDependencies.add(curDependencies.get(i));//if not part of the dep-to-be-removed list, add it to the new depcons
+					dependencies.remove(i);
+					System.out.println("DEP <"+curDepName+"> removed from UPR <"+upr+">");
 				
 				}
 			}
@@ -4359,18 +4360,18 @@ public static String getStatus(ExecutionStatus status) {
 			String text;
 			int depNum;
     		
-    		for(int d=0;d<newDependencies.size();d++)
+    		for(int d=0;d<dependencies.size();d++)
     		{
     			
-    			newDependencies.get(d).setNum(d+1);
+    			dependencies.get(d).setNum(d+1);
     		}   
     	    			
    
-    		for(int q=0;q<newDependencies.size();q++)
+    		for(int q=0;q<dependencies.size();q++)
     		{
-    			depNum=newDependencies.get(q).getNum();	
+    			depNum=dependencies.get(q).getNum();	
     					        
-    					        if(q != (newDependencies.size()-1))
+    					        if(q != (dependencies.size()-1))
     							{					
     						        	if(depNum<10)
     									{
@@ -4401,7 +4402,7 @@ public static String getStatus(ExecutionStatus status) {
     	    }
     			
     			
-    		currentUproc.setDependencyConditions(newDependencies);
+    		currentUproc.setDependencyConditions(dependencies);
     		currentUproc.setFormula(lf);
     		currentUproc.update();			
 	
