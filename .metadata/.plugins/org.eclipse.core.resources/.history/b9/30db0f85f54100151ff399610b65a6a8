@@ -1,4 +1,4 @@
-/*import com.orsyp.migration.extensions.*;
+import com.orsyp.migration.extensions.*;
 
 import com.orsyp.api.session.Session;
 import com.orsyp.api.session.SessionAtom;
@@ -129,12 +129,12 @@ public class InsertUprocAndResourceTool_V2 extends GenericViewExtension {
 				
 				
 				//insert uproc in session
-				try {
+				/*try {
 					addToSessionBeforeUproc(conn, sessionName, newUprocName,targetUprocName);
 				} catch (Exception e) {
 					log("Error inserting uproc " + newUprocName + " into session " + sessionName + " before uproc " + targetUprocName );
 					continue;
-				}
+				}*/
 				
 
 				try {
@@ -374,4 +374,4 @@ public class InsertUprocAndResourceTool_V2 extends GenericViewExtension {
 		upr.setVariables(varVector);
 		upr.update();
 	}
-}*/
+}
