@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="com.orsyp.api.rule.RuleId"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.Uproc"/>
+<fullyQualifiedTypeName name="java.util.Vector"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.DependencyCondition"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl.Operator"/>
 </qualifiedTypeNameHistroy>

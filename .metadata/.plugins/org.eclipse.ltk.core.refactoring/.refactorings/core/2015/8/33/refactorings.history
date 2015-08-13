@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy 2 elements to &apos;core/src/com.orsyp.client.amex&apos;&#x0D;&#x0A;- Original project: &apos;core&apos;&#x0D;&#x0A;- Destination element: &apos;core/src/com.orsyp.client.amex&apos;&#x0D;&#x0A;- Original elements:&#x0D;&#x0A;     com.orsyp.tools.ps.Test.java&#x0D;&#x0A;     com.orsyp.tools.ps.CopyOfTest.java" description="Copy compilation units" destination="/src&lt;com.orsyp.client.amex" element1="/src&lt;com.orsyp.tools.ps{Test.java" element2="/src&lt;com.orsyp.tools.ps{CopyOfTest.java" files="0" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1439472717904" units="2" version="1.0"/>
+</session>
