@@ -4351,13 +4351,8 @@ public static String getStatus(ExecutionStatus status) {
 				if(!depconHash.containsKey(curDepName))
 				{
 					newDependencies.add(curDependencies.get(i));//if not part of the dep-to-be-removed list, add it to the new depcons
-					
+				
 				}
-			}
-			
-			if(newDependencies.size()!=curDependencies.size())
-			{
-				System.out.println("UPR <"+upr+"> has a new list of deps");
 			}
 			
 			LaunchFormula lf = new LaunchFormula();

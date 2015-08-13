@@ -17,7 +17,6 @@ public class RunTest {
 	
 		HashMap<String,String>test=new HashMap<String,String>();
 		test.put("AMEX_TEMPLATE", "AMEX_TEMPLATE");
-		test.put("AX99DS20","AX99DS20");
 
 		//for(String uprKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
 		{
