@@ -4333,6 +4333,93 @@ public static String getStatus(ExecutionStatus status) {
     	}
     }
     
+    public void removeDepsFromUproc(String upr,HashMap<String,String> depconHash) throws Exception
+	{
+		
+    	if(uprs.containsKey(upr))
+    	{
+    		System.out.println(upr);
+    		Uproc currentUproc = uprs.get(upr);
+			Vector<DependencyCondition> curDependencies = currentUproc.getDependencyConditions();
+    		Vector<DependencyCondition> newDependencies = new Vector<DependencyCondition>();
+			
+			
+			for(int i=0;i<curDependencies.size();i++)
+			{
+				String curDepName=curDependencies.get(i).getUproc();
+				
+				if(!depconHash.containsKey(curDepName))
+				{
+					newDependencies.add(curDependencies.get(i));//if not part of the dep-to-be-removed list, add it to the new depcons
+					
+				}
+			}
+			
+			if(newDependencies.size()!=curDependencies.size())
+			{
+				System.out.println("UPR <"+upr+"> has a new list of deps");
+			}
+			
+			LaunchFormula lf = new LaunchFormula();
+			String text;
+			int depNum;
+    		
+    		for(int d=0;d<newDependencies.size();d++)
+    		{
+    			
+    			newDependencies.get(d).setNum(d+1);
+    		}   
+    	    			
+   
+    		for(int q=0;q<newDependencies.size();q++)
+    		{
+    			depNum=newDependencies.get(q).getNum();	
+    					        
+    					        if(q != (newDependencies.size()-1))
+    							{					
+    						        	if(depNum<10)
+    									{
+    										text = " =C0"+depNum+" AND";// OK
+    									}
+    									else 
+    									{
+    										text = " =C"+depNum+" AND";
+    									}
+    							}
+    							else
+    							{
+    								if(depNum<10)
+    								{
+    									text = " =C0"+depNum;// OK
+    								}
+    								else 
+    								{
+    									text = " =C"+depNum;
+    								}
+    					       
+    						
+    				        		}
+    					
+    					lf.appendText(text);
+
+    	    			
+    	    }
+    			
+    			
+    		currentUproc.setDependencyConditions(newDependencies);
+    		currentUproc.setFormula(lf);
+    		System.out.println(currentUproc.getName()+"-");
+    		currentUproc.update();			
+	
+		}
+		
+			
+			
+		
+	}
+    
+    
+    
     
     public void setSessionControlOnUproc(String upr) throws UniverseException
     {//this was developed for AMEX to fix the offset vs SAME_SESSION_AND_EXECUTION issue

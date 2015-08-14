@@ -4338,27 +4338,37 @@ public static String getStatus(ExecutionStatus status) {
 		
     	if(uprs.containsKey(upr))
     	{
-    		
     		Uproc currentUproc = uprs.get(upr);
 			Vector<DependencyCondition> curDependencies = currentUproc.getDependencyConditions();
     		Vector<DependencyCondition> newDependencies = new Vector<DependencyCondition>();
 			
+    		ArrayList<String> curEntries = new ArrayList<String>();
+    		ArrayList<String> newEntries = new ArrayList<String>();
 			
 			for(int i=0;i<curDependencies.size();i++)
 			{
 				String curDepName=curDependencies.get(i).getUproc();
+				curEntries.add(curDepName);
 				
 				if(!depconHash.containsKey(curDepName))
 				{
 					newDependencies.add(curDependencies.get(i));//if not part of the dep-to-be-removed list, add it to the new depcons
-					
+					newEntries.add(curDepName);
 				}
 			}
 			
-			if(newDependencies.size()!=curDependencies.size())
+		    Set<String> set1 = new HashSet<String>();
+		    set1.addAll(curEntries);
+
+		    Set<String> set2 = new HashSet<String>();
+		    set2.addAll(newEntries);
+
+		    set1.removeAll(set2);
+			
+			if(!set1.isEmpty())//if set1 is not Empty it means that we have found a booboo, action needs to be taken
 			{
-				System.out.println("UPR <"+upr+"> has a new list of deps");
-			}
+				//System.out.println("UPR <"+upr+"> has a new list of deps");
+			
 			
 			LaunchFormula lf = new LaunchFormula();
 			String text;
@@ -4408,8 +4418,13 @@ public static String getStatus(ExecutionStatus status) {
     			
     		currentUproc.setDependencyConditions(newDependencies);
     		currentUproc.setFormula(lf);
+    		System.out.println("- "+currentUproc.getName()+" has "+set1+" removed");
     		currentUproc.update();			
-	
+			}
+			else
+			{//if no booboo found, set1 is empty. then just delete the uproc to only keep the affected list on the node for easier extraction/identification
+				currentUproc.delete();
+			}
 		}
 		
 			
