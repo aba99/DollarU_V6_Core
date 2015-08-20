@@ -2,6 +2,7 @@ package com.orsyp.tools.ps;
 
 import static java.lang.System.out;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -30,7 +32,13 @@ import com.orsyp.api.ItemList;
 import com.orsyp.api.ObjectNotFoundException;
 import com.orsyp.api.Product;
 import com.orsyp.api.Variable;
+import com.orsyp.api.application.Application;
+import com.orsyp.api.application.ApplicationFilter;
+import com.orsyp.api.application.ApplicationList;
 import com.orsyp.api.central.UniCentral;
+import com.orsyp.api.domain.Domain;
+import com.orsyp.api.domain.DomainFilter;
+import com.orsyp.api.domain.DomainList;
 import com.orsyp.api.dqm.DqmQueue;
 import com.orsyp.api.dqm.DqmQueueFilter;
 import com.orsyp.api.dqm.DqmQueueId;
@@ -40,11 +48,15 @@ import com.orsyp.api.event.JobEvent;
 import com.orsyp.api.event.JobEventFilter;
 import com.orsyp.api.event.JobEventItem;
 import com.orsyp.api.event.JobEventList;
+import com.orsyp.api.execution.Execution;
 import com.orsyp.api.execution.ExecutionFilter;
 import com.orsyp.api.execution.ExecutionItem;
 import com.orsyp.api.execution.ExecutionList;
+import com.orsyp.api.execution.ExecutionLog;
 import com.orsyp.api.execution.ExecutionStatus;
+import com.orsyp.api.launch.Launch;
 import com.orsyp.api.launch.LaunchFilter;
+import com.orsyp.api.launch.LaunchId;
 import com.orsyp.api.launch.LaunchItem;
 import com.orsyp.api.launch.LaunchList;
 import com.orsyp.api.mu.Mu;
@@ -78,7 +90,8 @@ import com.orsyp.api.session.SessionItem;
 import com.orsyp.api.session.SessionList;
 import com.orsyp.api.session.SessionTree;
 import com.orsyp.api.session.SessionTree.AtomVisitor;
-import com.orsyp.api.syntaxerules.OwlsSyntaxRules;
+/*import com.orsyp.api.syntaxerules.ClassicSyntaxRules;
+*/import com.orsyp.api.syntaxerules.OwlsSyntaxRules;
 
 
 import com.orsyp.api.task.DayType;
@@ -106,16 +119,26 @@ import com.orsyp.api.uproc.UprocId;
 import com.orsyp.api.uproc.UprocList;
 import com.orsyp.api.uproc.UserControl;
 import com.orsyp.api.uproc.cl.InternalScript;
+import com.orsyp.api.user.UserFilter;
+import com.orsyp.api.user.UserList;
 import com.orsyp.central.jpa.jpo.NodeInfoEntity;
+import com.orsyp.comm.Connection;
 import com.orsyp.comm.client.ClientServiceLocator;
+import com.orsyp.owls.impl.application.OwlsApplicationImpl;
+import com.orsyp.owls.impl.application.OwlsApplicationListImpl;
+import com.orsyp.owls.impl.domain.OwlsDomainImpl;
+import com.orsyp.owls.impl.domain.OwlsDomainListImpl;
 import com.orsyp.owls.impl.dqm.OwlsDqmQueueImpl;
 import com.orsyp.owls.impl.dqm.OwlsDqmQueueListImpl;
 import com.orsyp.owls.impl.event.OwlsJobEventImpl;
 import com.orsyp.owls.impl.event.OwlsJobEventListImpl;
+import com.orsyp.owls.impl.execution.OwlsExecutionImpl;
 import com.orsyp.owls.impl.execution.OwlsExecutionListImpl;
+import com.orsyp.owls.impl.launch.OwlsLaunchImpl;
 import com.orsyp.owls.impl.launch.OwlsLaunchListImpl;
 import com.orsyp.owls.impl.mu.OwlsMuImpl;
 import com.orsyp.owls.impl.mu.OwlsMuListImpl;
+import com.orsyp.owls.impl.nfile.NodeFile;
 import com.orsyp.owls.impl.rule.OwlsRuleImpl;
 import com.orsyp.owls.impl.rule.OwlsRuleListImpl;
 import com.orsyp.owls.impl.session.OwlsSessionImpl;
@@ -124,11 +147,16 @@ import com.orsyp.owls.impl.task.OwlsTaskImpl;
 import com.orsyp.owls.impl.task.OwlsTaskListImpl;
 import com.orsyp.owls.impl.uproc.OwlsUprocImpl;
 import com.orsyp.owls.impl.uproc.OwlsUprocListImpl;
+import com.orsyp.owls.impl.user.OwlsUserListImpl;
 import com.orsyp.owls.msg.TaskMsg.EOwlsTaskStatus;
 import com.orsyp.owls.msg.TaskMsg.EOwlsTaskType;
 import com.orsyp.std.ClientConnectionManager;
+import com.orsyp.std.ConnectionFactory;
 import com.orsyp.std.MultiCentralConnectionFactory;
+
+
 import com.orsyp.std.central.UniCentralStdImpl;
+import com.orsyp.std.nfile.LocalBinaryFile;
 import com.orsyp.util.DateTools;
 
 
@@ -390,10 +418,10 @@ public class DuApiConnection {
 	
 	//-----------------------------------------
 	
-	public void duplicateUproc (String sourceUproc, String targetName,String uprlbl,int uprseverity) throws Exception{
+	public void duplicateUproc (String sourceUproc, String targetName,String uprlbl) throws Exception{
 		Uproc uproc = getUproc(sourceUproc);
 
-		uproc.setDefaultSeverity(uprseverity);
+		//uproc.setDefaultSeverity(uprseverity);
 		uproc.setLabel(uprlbl);
 		uproc.update();
 		uproc.extract();
@@ -404,6 +432,14 @@ public class DuApiConnection {
         uproc.setImpl(new OwlsUprocImpl());
         uproc.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
         uproc.duplicate(newDuplicatedUprocId, uproc.getLabel());
+        
+        Uproc obj = new Uproc(getContext(), newDuplicatedUprocId);
+        obj.setImpl(new OwlsUprocImpl());
+        obj.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
+        obj.extract();
+        //obj.create(); 
+        
+        uprs.put(targetName, obj);
 	}
 	
 	public void duplicateUproc (String sourceUproc, String targetName) throws Exception{
@@ -460,6 +496,27 @@ public class DuApiConnection {
         obj.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
 
         obj.extract();
+		System.out.println("UPR ---- "+obj.getName());
+
+		return obj;
+	}
+	
+	public Uproc getUprocWithContext(String name) throws Exception{
+		
+		if(uprs.containsKey(name))
+		{
+			return uprs.get(name);
+		}
+		
+		UprocId uprocId = new UprocId(name, defaultVersion);
+		Uproc obj = new Uproc(getContext(), uprocId);
+        
+        obj.setImpl(new OwlsUprocImpl());
+        obj.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
+
+        obj.extract();
+		System.out.println("UPR ---- "+obj.getName());
+
 		return obj;
 	}
 	
@@ -550,7 +607,27 @@ public class DuApiConnection {
 					
 	}
 
-	    
+	public boolean doesUprocExist(String upr) throws UniverseException
+	{
+		 UprocFilter filter = new UprocFilter(upr);
+	        UprocList list = new UprocList(getContext(), filter);
+	        
+	        list.setSyntaxRules(OwlsSyntaxRules.getInstance());
+	        OwlsUprocListImpl impl = new OwlsUprocListImpl();
+	        impl.init(list, Operation.DISPLAYLIST);
+	        list.setImpl(impl);
+	       // list.setImpl(new OwlsUprocListImpl());
+	        list.extract();
+	        //System.out.println("lissssssst"+list.getCount());
+	       if(list.getCount()!=0)
+	       {
+	    	   return true;
+	       }
+	       else
+	       {
+	    	   return false;
+	       }
+	}
 	
 	
 	public ItemList<LaunchItem> getLaunchList() throws UniverseException {
@@ -2793,18 +2870,18 @@ public ArrayList<ExecutionItem> getExecutionList() throws Exception{
         
         return arrayList;
     }
-public ArrayList<ExecutionItem> getExecutionList(ExecutionStatus[] status_array) throws Exception{        
+public ArrayList<ExecutionItem> getExecutionList(String upr,ArrayList<ExecutionStatus> status_array) throws Exception{        
     
 	HashMap <String,ExecutionItem> table = new HashMap<String,ExecutionItem>();
 	
 	ExecutionFilter filter = new ExecutionFilter();
   
-    filter.setStatuses(status_array);
+    //filter.setStatuses(null);
+    filter.setUprocName(upr);
     ExecutionList list = new ExecutionList(getContext(), filter);
     list.setImpl(new OwlsExecutionListImpl());
     list.extract();
     
-    ArrayList<ExecutionItem> arrayList = new ArrayList<ExecutionItem>();
     ArrayList<ExecutionItem> aborted_timeoverrun = new ArrayList<ExecutionItem>();
 
     
@@ -2837,23 +2914,16 @@ public ArrayList<ExecutionItem> getExecutionList(ExecutionStatus[] status_array)
     
     for(String key:table.keySet())
     {
-    	arrayList.add(table.get(key));
-    	if(table.get(key).getStatus().equals(ExecutionStatus.Aborted))//||table.get(key).getStatus().equals(ExecutionStatus.TimeOverrun))
+    	//arrayList.add(table.get(key));
+    	if(status_array.contains(table.get(key).getStatus()))
+    		//||table.get(key).getStatus().equals(ExecutionStatus.TimeOverrun))
     	{
     		aborted_timeoverrun.add(table.get(key));
     	}
     }
     
     
- /*   out.println("   End date   : " +
-        	(execution.getEndDate() == null? ""
-        		: sdfDate.format(execution.getEndDate())));
-        out.println("   End hour   : " +
-        	(execution.getEndDate() == null? ""
-        		: sdfHour.format(execution.getEndDate())));*/
-    
-    
-    //return arrayList;
+//System.out.println("siiiiiiize"+aborted_timeoverrun.size());
     return aborted_timeoverrun;
 }
 
@@ -3930,7 +4000,7 @@ public static String getStatus(ExecutionStatus status) {
     }
 
 
-    public void createOptionalTask (String taskName,String rule,String lwsFromCSV) throws Exception {
+    public void c (String taskName,String rule,String lwsFromCSV) throws Exception {
 
         try {
         	
@@ -4472,6 +4542,314 @@ public static String getStatus(ExecutionStatus status) {
 			uproc.update();
     	}
     }
+    private List<String> getApplications() throws Exception{
+		ArrayList<String> list = new ArrayList<String>();
+		ApplicationList l = new ApplicationList(getContext(), new ApplicationFilter());
+//		if (node.V5) 
+//			l.setImpl(new ApplicationListStdImpl());
+//		else 
+    		l.setImpl(new OwlsApplicationListImpl());
+		l.extract();
+		
+		for (int i = 0; i < l.getCount(); i++)
+			list.add(l.get(i).getName());		
+		return list;
+
+	}
+	
+	private List<String> getDomains() throws Exception {
+		ArrayList<String> list = new ArrayList<String>();
+		DomainList l = new DomainList(getContext(), new DomainFilter());
+	/*	if (node.V5) 
+			l.setImpl(new DomainListStdImpl());
+		else*/ 
+    		l.setImpl(new OwlsDomainListImpl());
+		l.extract();
+		
+		for (int i = 0; i < l.getCount(); i++)
+			list.add(l.get(i).getName());		
+		return list;
+
+	}
+	
+	private void createApp(String name) throws Exception {
+		Application app = new Application(name);
+	/*	if (node.V5) 
+			app.setImpl(new ApplicationStdImpl());
+		else */
+    		app.setImpl(new OwlsApplicationImpl());
+		List<String> doms = getDomains();
+		String d="I";
+		if (!doms.contains(d)) {
+			if (doms.size()==0) 
+				createDom("I");
+			else
+				d=doms.get(0);
+		}
+		app.setDomain(d);
+		app.create();
+	}
+	
+	private void createDom(String name) throws Exception {
+		Domain dom = new Domain(name);
+//		if (node.V5) 
+//			dom.setImpl(new DomainStdImpl());
+//		else 
+    		dom.setImpl(new OwlsDomainImpl());
+		dom.create();
+	}
+	
+	public void createUProc(String uprName, String[] scriptLines)  throws Exception {		
+    	UprocId uprocId = new UprocId(uprName, "000");
+		Uproc obj = new Uproc(getContext(), uprocId);
+		List<String> apps = getApplications();
+		String app = "U_";
+		if (!apps.contains(app)) {
+			if (apps.size()==0) 
+				createApp("U_");
+			else
+				app=apps.get(0);
+		}
+		obj.setApplication(app);
+		obj.setType("CL_INT");
+		obj.setFunctionalPeriod(FunctionalPeriod.Day);
+		obj.setLabel("Audit tool remote collector");
+		Memorization memo = new Memorization(Memorization.Type.ONE);
+		obj.setMemorization(memo);
+		
+	/*	if (node.V5) {
+			obj.setImpl(new UprocStdImpl());
+    		obj.getIdentifier().setSyntaxRules(ClassicSyntaxRules.getInstance());
+		}
+		else*/ {
+    		obj.setImpl(new OwlsUprocImpl());
+    		obj.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());    		
+		}
+		
+		InternalScript script = new InternalScript(obj);
+        script.setLines(scriptLines);
+		
+      
+        
+		obj.create();
+		
+		
+			script.save();	
+	} 
+		
+	public void createLaunch(String uprocName) throws Exception {
+		
+		
+	    Date launchDateTime = new Date();
+	    
+		
+		List<String> mus = getMus(); 
+		List<String> users = getUsers();
+		if (mus.size()==0)
+			throw new Exception("No MU found");
+		if (users.size()==0)
+			throw new Exception("No user found");
+		String aMu = mus.get(0);
+		String aUser = users.get(0);
+		if (users.contains("administrator"))
+			aUser = "administrator";
+		
+				
+		Launch l = new Launch(getContext(),LaunchId.createWithName("", "", uprocName, "000", aMu, null));
+		/*if (node.V5) {
+			l.setImpl(new LaunchStdImpl());
+    		l.getIdentifier().setSyntaxRules(ClassicSyntaxRules.getInstance());
+		}
+		else */{
+    		l.setImpl(new OwlsLaunchImpl());
+    		l.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
+		}
+        l.setBasedOnTask(false);
+        l.setBeginDate(launchDateTime);
+        Date endDate = new Date();
+        endDate.setTime(launchDateTime.getTime() + 100000000);
+        l.setEndDate(endDate);
+        l.setProcessingDate((new SimpleDateFormat("yyyyMMdd")).format(launchDateTime));
+        l.setUserName(aUser);
+        l.setQueue("SYS_BATCH");
+        l.setPriority("100");
+        //l.setPrinter("prin");
+        l.create();	
+		System.out.println("Launch created for <"+uprocName+"> with nmLanc ="+l.getNumlanc());
+
+        //return l.getIdentifier();
+	}
+	
+	public List<String> getMus() throws Exception {
+		ArrayList<String> list = new ArrayList<String>();
+		MuList l = new MuList(getContext(), new MuFilter());
+		/*if (node.V5) 
+			l.setImpl(new MuListStdImpl());
+		else */
+    		l.setImpl(new OwlsMuListImpl());
+		l.extract();
+		
+		for (int i = 0; i < l.getCount(); i++)
+			list.add(l.get(i).getName());		
+		return list;
+	}
+	
+	public List<String> getUsers() throws Exception {
+		ArrayList<String> list = new ArrayList<String>();
+		UserList l = new UserList(getContext(), new UserFilter());
+		/*if (node.V5) 
+			l.setImpl(new UserListStdImpl());
+		else */
+    		l.setImpl(new OwlsUserListImpl());
+		l.extract();
+		
+		for (int i = 0; i < l.getCount(); i++) 			
+			//select only admin users
+			//in V5 select user with code 001
+			if(l.get(i).getProfile().equalsIgnoreCase("PROFADM") && 
+//				(!node.V5 || l.get(i).getAuthorCode().equals("001")))
+				list.add(l.get(i).getName()));
+		return list;
+	}
+	
+	public String getLaunchStatus(String uprName, String launch) throws Exception {
+		LaunchFilter lf = new LaunchFilter();
+		lf.setNumlancMin(launch);
+		lf.setNumlancMax(launch);
+		lf.setUprocName(uprName);
+		lf.setBeginDate((new SimpleDateFormat("yyyyMMdd")).format(Calendar.getInstance().getTime()));
+		//lf.setEndDate("20300101");
+		//lf.setBeginHour("000000");
+		//lf.setEndHour("000000");
+		
+		LaunchList ll = new LaunchList(getContext(), lf);
+		/*if (node.V5) 
+			ll.setImpl(new LaunchListStdImpl());
+		else*/ 
+			ll.setImpl(new OwlsLaunchListImpl());
+				
+		ll.extract(Operation.DISPLAY);
+		
+		if (ll.getCount()==1) {		
+			LaunchItem it = ll.get(0);
+			return ""+it.getStatus().getCode();
+		}
+				
+		ExecutionFilter ef = new ExecutionFilter();
+		ef.setNumlancMin(launch);
+		ef.setNumlancMax(launch);
+		ef.setUprocName(uprName);
+		ef.setBeginDate((new SimpleDateFormat("yyyyMMdd")).format(Calendar.getInstance().getTime()));
+	/*	if (node.V5) {
+			ef.setApplication(null);
+			ef.setTaskName(null);
+			ef.setTaskVersion(null);
+		}*/
+		
+		ExecutionList list = new ExecutionList(getContext(), ef);
+	
+			list.setImpl(new OwlsExecutionListImpl());
+		list.extract(Operation.DISPLAYLIST);
+		
+		if (list.getCount()==1) {
+			ExecutionItem it = list.get(0);
+			return it.getStatus().toString();
+		}
+        
+        return "?";
+	}
+	
+	public String[] getExecutionLog (String uprName, String launch) throws Exception {
+		ExecutionFilter ef = new ExecutionFilter();
+		ef.setUprocName(uprName);
+		ef.setNumlancMin(launch);
+		ef.setNumlancMax(launch);
+		ef.setBeginDate((new SimpleDateFormat("yyyyMMdd")).format(Calendar.getInstance().getTime()));
+	/*	if (node.V5) {
+			ef.setApplication(null);
+			ef.setTaskName(null);
+			ef.setTaskVersion(null);
+		}*/
+		
+		ExecutionList list = new ExecutionList(getContext(), ef);
+		
+			list.setImpl(new OwlsExecutionListImpl());
+		list.extract(Operation.DISPLAY);
+		
+		if (list.getCount()==1) {
+			ExecutionItem it = list.get(0);
+			Execution ex = new Execution(getContext(),it.getIdentifier());
+	 
+				ex.setImpl(new OwlsExecutionImpl());
+			try {
+				ExecutionLog log = ex.getExecutionLog();			
+	            return log.getLines();			
+			} catch (Exception exc){}
+		}			
+		
+		return null;
+	}
+	
+	public List<String> getNodeFileList() throws Exception{
+		Connection connection = null;
+		List<String> files = new ArrayList<String>();
+        try {
+        	connection = ClientConnectionManager.getConnection(getContext(), ConnectionFactory.Service.IO);
+        	
+        	NodeFile nf = new NodeFile(connection, getContext(), "*");
+	    	files = nf.getNodeFileList();
+    		    		
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			connection.close();
+		}
+        return files;		
+	}
+	
+	public String getRemoteFile(String string, String file) throws Exception {
+		File f = new File(file);
+		String path = f.getParent();
+		String filename = f.getName();
+		return getRemoteFile(path, filename);
+	}
+	
+	public String getRemoteFile(String destinationPath, String remotePath, String remoteFileName) throws Exception{
+		Connection connection = null;
+		String localFile = destinationPath + File.separator + remoteFileName;
+        try {
+        	connection = ClientConnectionManager.getConnection(getContext(), ConnectionFactory.Service.IO);
+        	LocalBinaryFile locFile = new LocalBinaryFile(localFile);
+    	 {
+	    		NodeFile nf = new NodeFile(locFile, connection, getContext(), remoteFileName);
+	    		nf.get();
+    		}    		
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			connection.close();
+		}
+        return localFile;
+	}
+
+	public void deleteUProc(String uprName) {
+		try {
+			Uproc obj = new Uproc(getContext(), new UprocId(uprName, "000"));
+		
+			 {
+	    		obj.setImpl(new OwlsUprocImpl());
+	    		obj.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
+			}
+			obj.delete();
+		} catch (ObjectNotFoundException oe) {
+			//ignore
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
     
 }
 
