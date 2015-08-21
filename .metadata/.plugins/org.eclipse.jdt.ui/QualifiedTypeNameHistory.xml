@@ -12,4 +12,5 @@
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.Uproc"/>
 <fullyQualifiedTypeName name="com.orsyp.tools.ps.Connector"/>
+<fullyQualifiedTypeName name="com.orsyp.api.execution.ExecutionStatus"/>
 </qualifiedTypeNameHistroy>

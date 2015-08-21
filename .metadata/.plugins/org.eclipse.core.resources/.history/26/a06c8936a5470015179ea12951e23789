@@ -4403,7 +4403,7 @@ public static String getStatus(ExecutionStatus status) {
     	}
     }
     
-    public void removeDepsFromUproc(String upr,HashMap<String,String> depconHashToRemove) throws Exception
+    public void removeDepsFromUproc(String upr,HashMap<String,String> depconHash) throws Exception
 	{
 		
     	if(uprs.containsKey(upr))
@@ -4420,7 +4420,7 @@ public static String getStatus(ExecutionStatus status) {
 				String curDepName=curDependencies.get(i).getUproc();
 				curEntries.add(curDepName);
 				
-				if(!depconHashToRemove.containsKey(curDepName))
+				if(!depconHash.containsKey(curDepName))
 				{
 					newDependencies.add(curDependencies.get(i));//if not part of the dep-to-be-removed list, add it to the new depcons
 					newEntries.add(curDepName);
@@ -4501,92 +4501,7 @@ public static String getStatus(ExecutionStatus status) {
 			
 		
 	}
-
-    public void addDepToUproc(String upr,HashMap<String,String>depconHashToAdd) throws UniverseException
-    {
-    	if(uprs.containsKey(upr))
-    	{
-        	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
-
-        	SessionControl sessionControl = new SessionControl();
-			sessionControl.setType(SessionControl.Type.SAME_SESSION_AND_EXECUTION);
-
-			MuControl muControl= new MuControl();			
-			muControl.setType (Type.SAME_MU);//constants for the dependency condition
-        	
-			for(String depUpr:depconHashToAdd.keySet())
-			{
-				DependencyCondition dc = new DependencyCondition();
-			
-			    dc.setExpected(true);//expected is chosen
-			    dc.setFatal(false);//fatal box is NOT checked
-				dc.setUserControl(UserControl.ANY);//user is any
-				dc.setFunctionalPeriod(FunctionalPeriod.Day);
-				dc.setMuControl (muControl);
-				dc.setSessionControl(sessionControl);
-				
-				dc.setNum(1);
-				dc.setUproc(depUpr);
-				dc.setStatus(Status.COMPLETED);
-		        
-				curDeps.add(dc);
-			}
-			
-			LaunchFormula lf = new LaunchFormula();
-			String text;
-			int depNum;
-    		
-    		for(int d=0;d<curDeps.size();d++)
-    		{
-    			
-    			curDeps.get(d).setNum(d+1);
-    		}   
-    	    			
-   
-    		for(int q=0;q<curDeps.size();q++)
-    		{
-    			depNum=curDeps.get(q).getNum();	
-    					        
-    					        if(q != (curDeps.size()-1))
-    							{					
-    						        	if(depNum<10)
-    									{
-    										text = " =C0"+depNum+" AND";// OK
-    									}
-    									else 
-    									{
-    										text = " =C"+depNum+" AND";
-    									}
-    							}
-    							else
-    							{
-    								if(depNum<10)
-    								{
-    									text = " =C0"+depNum;// OK
-    								}
-    								else 
-    								{
-    									text = " =C"+depNum;
-    								}
-    					       
-    						
-    				        		}
-    					
-    					lf.appendText(text);
-
-    	    			
-    	    }
-    			
-    			
-    		uprs.get(upr).setDependencyConditions(curDeps);
-    		uprs.get(upr).setFormula(lf);
-    		System.out.println("- "+uprs.get(upr).getName()+" has "+depconHashToAdd.keySet()+" added");
-    		uprs.get(upr).update();			
-			
-			
-			
-    	}
-    }
+    
     
     
     
