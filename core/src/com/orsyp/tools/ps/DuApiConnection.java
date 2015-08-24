@@ -496,8 +496,12 @@ public class DuApiConnection {
         obj.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
 
         obj.extract();
-		System.out.println("UPR ---- "+obj.getName());
 
+        if(obj!=null)
+        {
+        	uprs.put(obj.getName(), obj);
+        }
+        
 		return obj;
 	}
 	
@@ -2921,10 +2925,8 @@ public ArrayList<ExecutionItem> getExecutionList(String upr,ArrayList<ExecutionS
     		aborted_timeoverrun.add(table.get(key));
     	}
     }
-    
-    
-//System.out.println("siiiiiiize"+aborted_timeoverrun.size());
-    return aborted_timeoverrun;
+   //System.out.println(aborted_timeoverrun.get(0).getNumlanc());
+        return aborted_timeoverrun;
 }
 
 @SuppressWarnings("unused")
@@ -4722,7 +4724,7 @@ public static String getStatus(ExecutionStatus status) {
 			script.save();	
 	} 
 		
-	public void createLaunch(String uprocName) throws Exception {
+	public void createLaunch(String uprocName,String submissionUser,String muName) throws Exception {
 		
 		
 	    Date launchDateTime = new Date();
@@ -4736,16 +4738,15 @@ public static String getStatus(ExecutionStatus status) {
 			throw new Exception("No user found");
 		String aMu = mus.get(0);
 		String aUser = users.get(0);
-		if (users.contains("administrator"))
-			aUser = "administrator";
+		if (users.contains(submissionUser))
+			aUser = submissionUser;
+		
+		if(mus.contains(muName))
+			aMu=muName;
 		
 				
 		Launch l = new Launch(getContext(),LaunchId.createWithName("", "", uprocName, "000", aMu, null));
-		/*if (node.V5) {
-			l.setImpl(new LaunchStdImpl());
-    		l.getIdentifier().setSyntaxRules(ClassicSyntaxRules.getInstance());
-		}
-		else */{
+		{
     		l.setImpl(new OwlsLaunchImpl());
     		l.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
 		}
@@ -4758,12 +4759,17 @@ public static String getStatus(ExecutionStatus status) {
         l.setUserName(aUser);
         l.setQueue("SYS_BATCH");
         l.setPriority("100");
-        //l.setPrinter("prin");
+        l.setPrinter("IMPR");
+       
+        
         l.create();	
+     
 		System.out.println("Launch created for <"+uprocName+"> with nmLanc ="+l.getNumlanc());
+
 
         //return l.getIdentifier();
 	}
+
 	
 	public List<String> getMus() throws Exception {
 		ArrayList<String> list = new ArrayList<String>();

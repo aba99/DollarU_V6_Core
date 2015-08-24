@@ -1,0 +1,191 @@
+package com.orsyp.client.amex;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Vector;
+
+import com.orsyp.api.Variable;
+import com.orsyp.api.execution.ExecutionStatus;
+import com.orsyp.api.launch.Launch;
+import com.orsyp.api.launch.LaunchId;
+import com.orsyp.api.syntaxerules.OwlsSyntaxRules;
+import com.orsyp.api.uproc.Uproc;
+import com.orsyp.owls.impl.launch.OwlsLaunchImpl;
+import com.orsyp.tools.ps.Connector;
+
+import au.com.bytecode.opencsv.CSVReader;
+
+
+public class FileWatcherDispatcher {
+
+	public static HashMap<String,String> board = new HashMap<String,String>();
+	public static HashMap<String,Queue> tracker = new HashMap<String,Queue>();
+	
+
+	
+	public static String cabrin_template = "CABRIN_TEMPLATE";
+	public static String currentMu = "AMEX-E0";
+	public static String currentUser = "casm_dellc";
+
+	@SuppressWarnings("rawtypes")
+	public static void main(String[] args) throws Exception  
+	{		
+
+		String refFile = args[0];
+		String configFile = args[1];
+		String path = args[2];
+		
+		Connector conn = new Connector(configFile,true,"CABRIN_",false,"",false,"");
+		CabrinProcess initialSeed = new CabrinProcess(conn.getConnectionList().get(0),cabrin_template,refFile);
+
+		System.out.println("Watching following path '"+path+"'");
+		
+		Path faxFolder = Paths.get(path);
+		
+			
+		WatchService watchService = FileSystems.getDefault().newWatchService();
+			
+		faxFolder.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
+
+		int count=0;
+			
+		boolean valid = true;
+			
+		do {
+				WatchKey watchKey = watchService.take();
+
+				for (WatchEvent event : watchKey.pollEvents()) 
+				{
+					@SuppressWarnings("unused")
+					WatchEvent.Kind kind = event.kind();
+					
+					if (StandardWatchEventKinds.ENTRY_CREATE.equals(event.kind())) 
+					{
+						String fileName = event.context().toString();
+						System.out.println((count+1)+"- File Read:" + fileName);
+						count++;
+
+						if(CabrinProcess.hasEntry(fileName) && fileName.endsWith(".TRIGGER"))
+						{	// if name.googleNumber where name is a key in the reference table
+						
+							String fileNameEntry = getGenericFileName(fileName);//to get the key from the reference table
+							
+							if(fileNameEntry!=null)
+							{
+
+								ArrayList<String>listOfJobs = reference.get(fileNameEntry);
+								//this is where we fetch the list of jobs that
+								//need to be triggered by this file
+								
+								for(int j=0;j<listOfJobs.size();j++)
+								{
+									String targetName = "CABRIN_"+listOfJobs.get(j).toUpperCase();
+									
+									if()
+							        
+
+								
+									
+									
+									
+										conn.getConnectionList().get(0).createLaunch(targetName,currentUser,currentMu);
+										
+									}
+									
+									
+								}
+								
+							}
+							
+							
+						}
+					}
+				}
+				valid = watchKey.reset();
+
+			} while (valid);
+
+	}
+
+	public void fireAwayCabrinProcesses(CabrinProcess cabproc,String submissionUser,String muName) throws Exception {
+		
+		
+		if(!CabrinProcess.publicboard.containsKey(cabproc.getCabrinJob()))
+			{
+					Queue<CabrinProcess> myQ=new LinkedList<CabrinProcess>();
+					myQ.add(cabproc);
+					CabrinProcess.publicboard.put(cabproc.getCabrinJob(),myQ);
+				
+			}
+		else if(CabrinProcess.publicboard.get(cabproc.getCabrinJob()).isEmpty())
+		{
+			CabrinProcess.publicboard.get(cabproc.getCabrinJob()).add(cabproc);
+		}
+
+		cabproc=CabrinProcess.publicboard.get(cabproc.getCabrinJob()).poll();
+		
+		   Uproc cabupr= this.getUproc(cabproc.getCabrinJob());
+		   cabupr.setVariables(cabproc.getCabrinUprocVariables());
+		   cabupr.update();
+			
+		   
+		
+		    Date launchDateTime = new Date();
+		    
+			
+			List<String> mus = getMus(); 
+			List<String> users = getUsers();
+			if (mus.size()==0)
+				throw new Exception("No MU found");
+			if (users.size()==0)
+				throw new Exception("No user found");
+			String aMu = mus.get(0);
+			String aUser = users.get(0);
+			if (users.contains(submissionUser))
+				aUser = submissionUser;
+			
+			if(mus.contains(muName))
+				aMu=muName;
+			
+					
+			Launch l = new Launch(getContext(),LaunchId.createWithName("", "", cabproc.getCabrinJob(), "000", aMu, null));
+			{
+	    		l.setImpl(new OwlsLaunchImpl());
+	    		l.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
+			}
+	        l.setBasedOnTask(false);
+	        l.setBeginDate(launchDateTime);
+	        Date endDate = new Date();
+	        endDate.setTime(launchDateTime.getTime() + 100000000);
+	        l.setEndDate(endDate);
+	        l.setProcessingDate((new SimpleDateFormat("yyyyMMdd")).format(launchDateTime));
+	        l.setUserName(aUser);
+	        l.setQueue("SYS_BATCH");
+	        l.setPriority("100");
+	        l.setPrinter("IMPR");
+	       
+	        
+	        l.create();	
+	     
+	        
+			System.out.println("Launch created for <"+cabproc.getCabrinJob()+"> with nmLanc ="+l.getNumlanc());
+
+
+	        //return l.getIdentifier();
+		}
+
+}

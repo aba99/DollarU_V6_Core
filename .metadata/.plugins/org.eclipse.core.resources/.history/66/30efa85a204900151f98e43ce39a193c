@@ -1,0 +1,151 @@
+package com.orsyp.client.amex;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Vector;
+
+import com.orsyp.api.Variable;
+import com.orsyp.api.uproc.Uproc;
+
+public class CabrinProcess {
+	//this class represents the process that gets triggered when a file is dropped
+
+	private String fileName;//fullName of the actual file that came in
+	private String googleNumber;//part of the fullName .G0000V00.
+	private String relatedMainUproc;//the main job this cabrin process triggers
+	private String relatedCabrinUproc;//the actual name of the CabrinUproc
+	private Vector<Variable> variables;//uproc variables with updated fileName and googleNumber
+	private static Uproc templateCabrinUproc;//static templateCabrinUproc needed for variableModifications
+	private static boolean isTempUprocSet = false;
+	public static int count = 0;//general counter
+	public static HashMap<String,Queue<CabrinProcess>>publicboard=new HashMap<String,Queue<CabrinProcess>>();
+	
+	public CabrinProcess(Uproc upr)
+	{
+		if(upr!=null)
+		{
+			templateCabrinUproc=upr;
+			isTempUprocSet=true;
+			count++;
+		}
+	}
+	public CabrinProcess(String filename,String mainjobname)
+	{
+		if(!isTempUprocSet)
+		{
+			System.out.println(" CabrinProcess class needs a one-time setTemplateUproc(String uprName,DuApiConnection)");
+			System.exit(-1);
+			
+		}
+	
+		fileName=filename;
+		relatedMainUproc=mainjobname;
+		googleNumber =getGoogleNumber(filename);
+		variables=deriveUprocVariables();
+		
+		if(!publicboard.containsKey(mainjobname))
+		{
+			 Queue<CabrinProcess> myQ=new LinkedList<CabrinProcess>();
+			 publicboard.put(mainjobname, myQ);
+			 
+		}
+		
+		publicboard.get(mainjobname).add(this);
+		
+		count++;
+
+		
+		
+		
+	}
+	public Vector<Variable> getCabrinUprocVariables()
+	{
+		return variables;
+	}
+	public String getFullFileName()
+	{
+		return fileName;
+	}
+	public String getGNumber()
+	{
+		return googleNumber;
+	}
+	public String getMainJob()
+	{
+		return relatedMainUproc;
+	}
+	public String getCabrinJob()
+	{
+		return relatedCabrinUproc;
+	}
+	public void setFullFileName(String fname)
+	{
+		fileName=fname;
+	}
+	public void setGNumber(String gnumber)
+	{
+		googleNumber=gnumber;
+	}
+	public void setRelatedMainJob(String relatedMJ )
+	{
+		relatedMainUproc=relatedMJ;
+	}
+	public void setUprVariables()
+	{
+		variables=deriveUprocVariables();
+	}
+	public static String getGoogleNumber(String fullFilename)
+	{// *.G0000V00.TRIGGER needs to be parsed
+		fullFilename=fullFilename.replace(".TRIGGER","");
+		int length= fullFilename.length();
+		
+		
+		fullFilename=fullFilename.substring(length-8, length);
+		return fullFilename.substring(3, 5);
+		
+	}
+	private  Vector<Variable> deriveUprocVariables()
+	{
+		if(isTempUprocSet)
+		{
+		
+			Vector<Variable> varia= templateCabrinUproc.getVariables();
+
+			if(varia.size()==3 && varia.get(1).getName().equals("COMMAND_PART2") 
+						   		&& varia.get(2).getName().equals("MAIN_JOB_TRIGGER"))
+			{	
+	
+			
+				String command =varia.get(1).getValue();
+				command=command.replace("-S00", "-S"+googleNumber);
+				command=command.replace("<FILE>", fileName);
+				varia.get(1).setValue(command);	
+			
+				
+				String main_job_trigger = varia.get(2).getValue();
+				main_job_trigger=main_job_trigger.replace("<JOB>", relatedMainUproc);
+				varia.get(2).setValue(main_job_trigger);
+				
+				
+		
+			}
+	
+			return varia;
+		}
+		
+		else return null;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}
