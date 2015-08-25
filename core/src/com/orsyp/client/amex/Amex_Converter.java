@@ -82,6 +82,7 @@ public class Amex_Converter {
 					}
 					modifyVariables(uprocs.get(uprKey));
 					updateUprocScript(uprocs.get(uprKey),myNode);
+					cleanUprocScript(uprocs.get(uprKey),myNode);
 				}
 			
 			
@@ -283,11 +284,46 @@ public class Amex_Converter {
 		
 	 	return var;
 	}
+	public static void cleanUprocScript(Uproc upr,Connector myNode) throws UniverseException
+	{
+		ArrayList<String> nonDuplicatedScriptLines = new ArrayList<String>();
+		
+		System.out.println("Cleaning Script on Uproc "+upr.getName());
+		System.out.println();
+		
+		if(myNode.getConnectionList().get(0).uprocAlreadyExists(upr.getName())
+				&&upr.getType().equalsIgnoreCase("CL_INT"))
+				//&&JCL_arrayListOfVariables.containsKey(upr.getName()))
+		{
+			String[] currentScriptLines =myNode.getConnectionList().get(0).extractInternalScript(upr);
+			
+			for(int j=0;j<currentScriptLines.length;j++)
+			{
+				if(!nonDuplicatedScriptLines.contains(currentScriptLines[j]))
+				{
+					nonDuplicatedScriptLines.add(currentScriptLines[j]);
+				}
+					
+					
+			}
+			
+			String[] arr = nonDuplicatedScriptLines.toArray(new String[nonDuplicatedScriptLines.size()]);
+			
+				
+			
+			
+		myNode.getConnectionList().get(0).createInternalScript(upr,arr);
+			
+			
+			
+		}
+		
+	}
 
 	public static void updateUprocScript(Uproc upr,Connector myNode) throws UniverseException
 	{
 		System.out.println("Updating Script on Uproc "+upr.getName());
-		System.out.println();
+		//System.out.println();
 		
 		if(myNode.getConnectionList().get(0).uprocAlreadyExists(upr.getName())
 				&&upr.getType().equalsIgnoreCase("CL_INT"))

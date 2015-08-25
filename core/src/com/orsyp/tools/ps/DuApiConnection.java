@@ -3552,8 +3552,8 @@ public static String getStatus(ExecutionStatus status) {
     	    							if(atom.getChildKo()!=null)
     	    							{
     	    								result.add(atom.getChildKo().getData().getUprocName());
-    	    								SessionAtom currentAtom = atom.getChildOk().getNextSibling();
-    	    								SessionAtom otherCurrentAtom = atom.getChildOk().getPreviousSibling();
+    	    								SessionAtom currentAtom = atom.getChildKo().getNextSibling();
+    	    								SessionAtom otherCurrentAtom = atom.getChildKo().getPreviousSibling();
 
     	    								while(currentAtom!=null)
     	    								{

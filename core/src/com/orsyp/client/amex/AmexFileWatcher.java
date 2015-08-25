@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -130,8 +131,9 @@ public class AmexFileWatcher {
 	        }
 	        else 
 	        {
-	            
-	        	if(fileEntry.getName().endsWith(".TRIGGER"))
+	        	
+	        	
+	        	if(EndsWithGxxxxVxxDotTrigger(fileEntry.getName()))
 	            {
 	            
 		           
@@ -164,6 +166,10 @@ public class AmexFileWatcher {
 	    
 	    return currentFilesToProcess;
 	}
+	public static boolean EndsWithGxxxxVxxDotTrigger(String value) {
+		// Test start and end characters.
+		return Pattern.matches(".*G\\d\\d\\d\\dV\\d\\d.TRIGGER$", value);
+	    }
 	
 	public static String getGoogleNumber(String fullFilename)
 	{// *.G0000V00.TRIGGER needs to be parsed
