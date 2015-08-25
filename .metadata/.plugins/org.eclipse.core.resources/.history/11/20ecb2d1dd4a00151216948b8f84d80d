@@ -227,8 +227,8 @@ public class Amex_Converter {
 				
 				if(JCL_listOfVariables.containsKey(upr.getName()))
 				{
-					command=//command
-							" "+upr.getName()+" -S 00 -E\""
+					command=command
+							+" "+upr.getName()+" -S 00 -E\""
 							+JCL_listOfVariables.get(upr.getName())
 							+"\" -H 9999";
 				}
@@ -236,8 +236,8 @@ public class Amex_Converter {
 				{
 					if(all_JCL.containsKey(upr.getName()))
 					{
-						command=//command
-								" "+upr.getName()+" -H 9999";
+						command=command
+								+" "+upr.getName()+" -H 9999";
 					}
 							
 				}

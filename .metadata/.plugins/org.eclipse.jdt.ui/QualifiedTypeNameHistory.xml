@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="com.orsyp.api.rule.RuleId"/>
-<fullyQualifiedTypeName name="java.util.Vector"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.DependencyCondition"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl.Operator"/>
 <fullyQualifiedTypeName name="com.orsyp.util.io.FileUtils"/>
 <fullyQualifiedTypeName name="java.util.Scanner"/>
+<fullyQualifiedTypeName name="com.orsyp.api.execution.ExecutionStatus"/>
+<fullyQualifiedTypeName name="com.orsyp.tools.ps.Connector"/>
 <fullyQualifiedTypeName name="java.io.File"/>
 <fullyQualifiedTypeName name="java.util.HashMap"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="java.lang.Integer"/>
+<fullyQualifiedTypeName name="com.orsyp.tools.ps.DuApiConnection"/>
+<fullyQualifiedTypeName name="java.util.Vector"/>
+<fullyQualifiedTypeName name="com.orsyp.api.Variable"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.Uproc"/>
-<fullyQualifiedTypeName name="com.orsyp.tools.ps.Connector"/>
-<fullyQualifiedTypeName name="com.orsyp.api.execution.ExecutionStatus"/>
+<fullyQualifiedTypeName name="com.google.common.io.Files"/>
+<fullyQualifiedTypeName name="java.nio.file.Path"/>
 </qualifiedTypeNameHistroy>

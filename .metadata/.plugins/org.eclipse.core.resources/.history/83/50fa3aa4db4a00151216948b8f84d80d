@@ -76,10 +76,6 @@ public class Amex_Converter {
 				for(String uprKey:all_JCL.keySet())
 				{
 					//System.out.println(uprKey);
-					if(!myNode.getConnectionList().get(0).uprocAlreadyExists(uprKey))
-					{
-						myNode.getConnectionList().get(0).duplicateUproc(template_Uproc,uprKey);
-					}
 					modifyVariables(uprocs.get(uprKey));
 					updateUprocScript(uprocs.get(uprKey),myNode);
 				}
@@ -227,8 +223,8 @@ public class Amex_Converter {
 				
 				if(JCL_listOfVariables.containsKey(upr.getName()))
 				{
-					command=//command
-							" "+upr.getName()+" -S 00 -E\""
+					command=command
+							+" "+upr.getName()+" -S 00 -E\""
 							+JCL_listOfVariables.get(upr.getName())
 							+"\" -H 9999";
 				}
@@ -236,8 +232,8 @@ public class Amex_Converter {
 				{
 					if(all_JCL.containsKey(upr.getName()))
 					{
-						command=//command
-								" "+upr.getName()+" -H 9999";
+						command=command
+								+" "+upr.getName()+" -H 9999";
 					}
 							
 				}

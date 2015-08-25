@@ -98,8 +98,8 @@ public class AmexFileWatcher {
 					
 					duapi.createLaunch(cabUprocKey, currentUser, currentMu);
 					
-					/*File f = new File(path+"\\"+currentFiles.get(cabUprocKey));
-					f.delete();*/
+					File f = new File(path+"\\"+currentFiles.get(cabUprocKey));
+					f.delete();
 				}
 					
 				

@@ -149,7 +149,7 @@ public class AmexFileWatcher {
 				            	if(new_gnum<existing_gnum)
 				            	{
 				            		currentFilesToProcess.put(cabrinjob,fileEntry.getName());
-				            	}//get the file with the lowest googoo number
+				            	}
 				            }
 				            else
 				            {

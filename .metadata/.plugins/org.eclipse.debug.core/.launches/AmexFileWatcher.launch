@@ -7,6 +7,6 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.orsyp.client.amex.AmexFileWatcher"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;C:\Users\administrator\Desktop\Projects\Amex\FileWatcher\test.csv&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\FileWatcher\config.conf&quot; &quot;C:\IPland&quot;"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;C:\Users\administrator\Desktop\Projects\Amex\FileWatcher\reference_file.csv&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\FileWatcher\config.conf&quot; &quot;C:\IPland&quot;"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="core"/>
 </launchConfiguration>
