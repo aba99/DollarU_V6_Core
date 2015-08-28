@@ -111,6 +111,7 @@ import com.orsyp.api.uproc.DependencyCondition.Status;
 import com.orsyp.api.uproc.MuControl.Type;
 import com.orsyp.api.uproc.DependencyCondition;
 import com.orsyp.api.uproc.LaunchFormula;
+import com.orsyp.api.uproc.NonSimultaneityCondition;
 import com.orsyp.api.uproc.ProcessingDateControl;
 import com.orsyp.api.uproc.SessionControl;
 import com.orsyp.api.uproc.Uproc;
@@ -3420,8 +3421,8 @@ public static String getStatus(ExecutionStatus status) {
    	}
     public static ArrayList<String> getAllRulesFromTask(Task tsk) {
     	ArrayList<String> result=new ArrayList<String>();
-    	if (tsk.getTaskType().equals(TaskType.Provoked)) {
-    		result.add("Provoked");
+    	if (tsk.getTaskType().equals(TaskType.Provoked)||tsk.getTaskType().equals(TaskType.Cyclic)) {
+    		result.add("Provoked/Cyclic");
     	} else {
     		TaskPlanifiedData taskPlanifiedData = (TaskPlanifiedData) tsk
     				.getSpecificData();
@@ -3692,7 +3693,40 @@ public static String getStatus(ExecutionStatus status) {
 			
 		
 	}
-    
+    public void setNonSimulOnUproc(String upr) throws Exception
+	{
+    	Uproc currentUproc;
+    	if(uprs.containsKey(upr))
+    	{
+    		currentUproc=uprs.get(upr);
+    	}
+    	else
+    	{
+    		currentUproc=getUproc(upr);
+    	}
+    	LaunchFormula formula = new LaunchFormula ();
+		Vector<NonSimultaneityCondition> nonSimCondVect = new Vector<NonSimultaneityCondition>();			
+		NonSimultaneityCondition nonSimultaneityCondition = new NonSimultaneityCondition();
+		nonSimultaneityCondition.setExpected(true);
+		nonSimultaneityCondition.setFatal(false);
+		nonSimultaneityCondition.setNum(1);
+		nonSimultaneityCondition.setSameProcessingDate(true);
+		nonSimultaneityCondition.setUproc(upr);
+		MuControl mu2Control = new MuControl();
+		mu2Control.setType( MuControl.Type.SAME_MU );
+		mu2Control.setOneEnough(true);
+		nonSimultaneityCondition.setMuControl( mu2Control );
+		SessionControl sessionControl2 = new SessionControl();
+		sessionControl2.setType(SessionControl.Type.ANY_SESSION);
+		nonSimultaneityCondition.setSessionControl(sessionControl2);
+		nonSimCondVect.add(nonSimultaneityCondition);
+		currentUproc.setNonSimultaneityConditions(nonSimCondVect);
+		
+		formula.appendText("=C01");	
+		currentUproc.setFormula(formula);
+		currentUproc.update();
+		uprs.put(upr, currentUproc);
+	}
     protected  void updateExecutionContextOfSessionAtom(SessionAtom atom,String csvinput){
     	if (atom.getData()!=null && csvinput.contains("(")) {
             String trimmed = csvinput.substring(0,csvinput.indexOf("("));
@@ -4405,7 +4439,7 @@ public static String getStatus(ExecutionStatus status) {
     	}
     }
     
-    public void removeDepsFromUproc(String upr,HashMap<String,String> depconHashToRemove) throws Exception
+    public void removeDepsFromUproc(String upr,ArrayList<String> depconHashToRemove) throws Exception
 	{
 		
     	if(uprs.containsKey(upr))
@@ -4422,7 +4456,7 @@ public static String getStatus(ExecutionStatus status) {
 				String curDepName=curDependencies.get(i).getUproc();
 				curEntries.add(curDepName);
 				
-				if(!depconHashToRemove.containsKey(curDepName))
+				if(!depconHashToRemove.contains(curDepName))
 				{
 					newDependencies.add(curDependencies.get(i));//if not part of the dep-to-be-removed list, add it to the new depcons
 					newEntries.add(curDepName);

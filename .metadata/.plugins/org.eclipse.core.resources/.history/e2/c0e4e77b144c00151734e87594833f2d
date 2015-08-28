@@ -1,0 +1,64 @@
+package com.orsyp.client.amex;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Vector;
+
+import com.orsyp.api.uproc.DependencyCondition;
+import com.orsyp.api.uproc.SessionControl;
+import com.orsyp.tools.ps.Connector;
+
+
+
+public class CopyOfTest {
+
+	public static void main(String[] args) throws Exception {
+
+		String fileName = args[0];
+		
+		
+		Connector conn = new Connector(fileName,true,"",false,"",false,"");
+	
+		HashMap<String,ArrayList<String>> output= new HashMap<String,ArrayList<String>>();
+		ArrayList<String> any = new ArrayList<String>();
+		ArrayList<String> same = new ArrayList<String>();
+		ArrayList<String> same_exec = new ArrayList<String>();
+		
+		output.put("ANY", any);
+		output.put("SAME",same);
+		output.put("SAME_EXEC", same_exec);
+		
+		for(String uprKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		{
+			
+			Vector<DependencyCondition> curDeps = conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uprKey).getDependencyConditions();
+			
+			for(int d=0;d<curDeps.size();d++)
+			{
+				if(curDeps.get(d).getSessionControl().getType().equals(SessionControl.Type.SAME_SESSION))
+				{
+					output.get("SAME").add(uprKey+"|"+curDeps.get(d).getUproc());
+				}
+				else if(curDeps.get(d).getSessionControl().getType().equals(SessionControl.Type.ANY_SESSION))
+				{
+					output.get("ANY").add(uprKey+"|"+curDeps.get(d).getUproc());
+
+				}
+				else if(curDeps.get(d).getSessionControl().getType().equals(SessionControl.Type.SAME_SESSION_AND_EXECUTION))
+				{
+					output.get("SAME_EXEC").add(uprKey+"|"+curDeps.get(d).getUproc());
+
+				}
+				
+
+
+			}
+			
+			
+			
+		}
+	}	
+		
+	
+
+}

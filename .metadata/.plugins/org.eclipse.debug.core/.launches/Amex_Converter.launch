@@ -6,8 +6,8 @@
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
 </listAttribute>
-<stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\console.log"/>
+<stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\updateVariablesAndScriptOnUprocs.log"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.orsyp.client.amex.Amex_Converter"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\config.conf&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\JMFSYM01.TXT&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\Variable_Resolution\ConversionCmd.txt&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\JCL_new&quot;"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\config.conf&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\Variable_Resolution\JMFSYM01.TXT&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\Variable_Resolution\ConversionCmd.txt&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\CreateUprocs\JCL_new&quot;"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="core"/>
 </launchConfiguration>

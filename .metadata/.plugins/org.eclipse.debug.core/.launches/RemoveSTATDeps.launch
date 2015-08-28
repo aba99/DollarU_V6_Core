@@ -6,8 +6,8 @@
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
 </listAttribute>
-<stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="C:\Users\administrator\Desktop\Projects\Amex\input_files\CTL-M Schedule Extract - 06292015\log.txt"/>
+<stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="C:\Users\administrator\Desktop\Projects\Amex\Stat_Dependencies\log.txt"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.orsyp.client.amex.RemoveSTATDeps"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;C:\Users\administrator\Desktop\Projects\StateOfDelaware\inputs\config.conf&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\input_files\CTL-M Schedule Extract - 06292015\WXX080.SCLLIB.XMLREP.DELLB.XML&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\input_files\CTL-M Schedule Extract - 06292015\WXX080.SCLLIB.XMLREP.DELLA.XML&quot;"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;C:\Users\administrator\Desktop\Projects\StateOfDelaware\inputs\config.conf&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\Stat_Dependencies\stat_dep.csv&quot;"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="core"/>
 </launchConfiguration>

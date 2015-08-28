@@ -38,6 +38,7 @@ public class AmexFileWatcher {
 		array.add(ExecutionStatus.Running);
 		array.add(ExecutionStatus.Aborted);
 		array.add(ExecutionStatus.Pending);
+		array.add(ExecutionStatus.EventWait);
 		
 		Connector conn = new Connector(configFile,true,"CABRIN_",false,"",false,"");
 		DuApiConnection duapi = conn.getConnectionList().get(0);
@@ -65,6 +66,7 @@ public class AmexFileWatcher {
 					if(!duapi.doesUprocExist(cabUprocKey))
 					{
 						duapi.duplicateUproc(cabrin_template, cabUprocKey, "CABRIN");
+						duapi.setNonSimulOnUproc(cabUprocKey);
 					}
 					
 						Uproc currentCabUpr = duapi.getUproc(cabUprocKey);
@@ -80,7 +82,7 @@ public class AmexFileWatcher {
 								String spart = command.substring(command.indexOf("-S")+2, command.indexOf("-E\"")).trim();
 								String fpart = command.substring(command.indexOf("\"XFPATH=/IPland/")+16,command.length()).trim();
 								
-								command=command.replace("-S"+spart, "-S"+getGoogleNumber(currentFiles.get(cabUprocKey)));
+								command=command.replace("-S"+spart, "-S"+getNumberFromFileName(currentFiles.get(cabUprocKey)));
 								command=command.replace(fpart, currentFiles.get(cabUprocKey));
 								varia.get(1).setValue(command);	
 							
@@ -161,6 +163,73 @@ public class AmexFileWatcher {
 		            	}
 	
 		        }
+	        	
+	        	else if(EndsWithJDxxxDotTrigger(fileEntry.getName()))
+	        	{
+		        		String gnum = getJDxxxNumber(fileEntry.getName());
+		        		String cabrinjob = getCabrinUprocName(fileEntry.getName());
+		        		
+		        		if(cabrinjob!=null)
+		        		{
+
+				            if(currentFilesToProcess.containsKey(cabrinjob))
+				            {
+				            	int new_gnum =Integer.parseInt(gnum);
+				            	int existing_gnum = Integer.parseInt(getJDxxxNumber(currentFilesToProcess.get(cabrinjob)));
+				            	
+				            	if(new_gnum<existing_gnum)
+				            	{
+				            		currentFilesToProcess.put(cabrinjob,fileEntry.getName());
+				            	}//get the file with the lowest googoo number
+				            }
+				            else
+				            {
+				            	currentFilesToProcess.put(cabrinjob, fileEntry.getName());
+				            }
+		        		}
+	        		
+	        	}
+	        	
+	        	else if(EndsWithJYYYYDDDDotTrigger(fileEntry.getName()))
+	        	{
+		        		String gnum = getJxxxxxxxNumber(fileEntry.getName());
+		        		String cabrinjob = getCabrinUprocName(fileEntry.getName());
+		        		
+		        		if(cabrinjob!=null)
+		        		{
+
+				            if(currentFilesToProcess.containsKey(cabrinjob))
+				            {
+				            	int new_gnum =Integer.parseInt(gnum);
+				            	int existing_gnum = Integer.parseInt(getJxxxxxxxNumber(currentFilesToProcess.get(cabrinjob)));
+				            	
+				            	if(new_gnum<existing_gnum)
+				            	{
+				            		currentFilesToProcess.put(cabrinjob,fileEntry.getName());
+				            	}//get the file with the lowest googoo number
+				            }
+				            else
+				            {
+				            	currentFilesToProcess.put(cabrinjob, fileEntry.getName());
+				            }
+		        		}
+	        		
+	        	}
+	        	else if (fileEntry.getName().endsWith(".TRIGGER"))
+	        	{
+	        		String cabrinjob = getCabrinUprocName(fileEntry.getName());
+	        		
+	        		if(cabrinjob!=null)
+	        		{
+
+			          
+			            	currentFilesToProcess.put(cabrinjob, fileEntry.getName());
+			            
+	        		}
+	        		
+	        	}
+	        	
+	        	
 	        }
 	    }
 	    
@@ -170,6 +239,14 @@ public class AmexFileWatcher {
 		// Test start and end characters.
 		return Pattern.matches(".*G\\d\\d\\d\\dV\\d\\d.TRIGGER$", value);
 	    }
+	public static boolean EndsWithJDxxxDotTrigger(String value)
+	{
+		return Pattern.matches(".*JD\\d\\d\\d.TRIGGER$", value);
+	}
+	public static boolean EndsWithJYYYYDDDDotTrigger(String value)
+	{
+		return Pattern.matches(".*J\\d\\d\\d\\d\\d\\d\\d.TRIGGER$", value);
+	}
 	
 	public static String getGoogleNumber(String fullFilename)
 	{// *.G0000V00.TRIGGER needs to be parsed
@@ -181,6 +258,23 @@ public class AmexFileWatcher {
 		return fullFilename.substring(3, 5);
 		
 	}
+	public static String getJDxxxNumber(String fullFilename)
+	{
+		fullFilename=fullFilename.replace(".TRIGGER","");
+		int length= fullFilename.length();
+		
+		
+		fullFilename=fullFilename.substring(length-3, length);
+		
+		return fullFilename;
+	}
+	public static String getJxxxxxxxNumber(String fullFilename)
+	{
+		fullFilename=fullFilename.replace(".TRIGGER","");
+		int length= fullFilename.length();
+		fullFilename=fullFilename.substring(length-7, length);
+		return fullFilename;
+	}
 	public static String getCabrinUprocName(String fullFilename)
 	{
 		if(getGenericKeyFileName(fullFilename) != null)
@@ -189,6 +283,31 @@ public class AmexFileWatcher {
 		}
 		
 		return null;
+	}
+	public static String getNumberFromFileName(String fileName)
+	{
+		if(EndsWithGxxxxVxxDotTrigger(fileName))
+		{
+			return getGoogleNumber(fileName);
+		}
+		
+		fileName=fileName.replace(".TRIGGER", "");
+		int l = fileName.length();
+		
+		if(l>2 )
+		{
+			if(Pattern.matches("\\d\\d",fileName.substring(l-2, l)))
+			{
+				return fileName.substring(l-2, l);
+			}
+			else
+				return "99";
+		}
+		else
+		{
+			return "99";
+		}
+		
 	}
 	
 	public static void readReferenceFile(String fileName) throws IOException
