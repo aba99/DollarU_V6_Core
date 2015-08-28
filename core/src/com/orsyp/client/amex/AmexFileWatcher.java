@@ -1,5 +1,9 @@
 package com.orsyp.client.amex;
-
+//This filewatcher accounts for the 3 scenarios AMEX runs when a file gets dropped at a specified location
+// Scenario 1 : If file shows up, create a CABRIN_<MAINJOB> uproc and launch CABRIN_<MAINJOB>. If successful, trigger <MAINJOB> uproc
+// Scenario 2 : If file shows up, create a CARBIN_<MAINJOB> uproc and launch CABRIN_<MAINJOB>. If successful, trigger provoked task on the session <MAINJOB> uproc belongs to
+// Scenario 3 : If file shows up, create a CABRIN_<MAINJOB> uproc and launch CABRIN_<MAINJOB>. Do nothing afterwards.
+// The condition of CABRIN_<JOB> being triggered uniquely still holds for all 3 scenarios.
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,10 +23,14 @@ import com.orsyp.tools.ps.DuApiConnection;
 
 public class AmexFileWatcher {
 
-	private static HashMap<String,String> reference = new HashMap<String,String>();
+	private static HashMap<String,ArrayList<String>> reference = new HashMap<String,ArrayList<String>>();
+	//this will have FileName,MainJob,Cabrin_Template_toUse,InWhatSessionIsMyMainUproc
 	private static ArrayList<ExecutionStatus> array  = new ArrayList<ExecutionStatus>();
 	
-	public static String cabrin_template = "CABRIN_TEMPLATE";
+	public static String cabrin_template_scenario_1 = "CABRIN_TEMPLATE";
+	public static String cabrin_template_scenario_2 = "CABRIN_TEMPLATE";
+	public static String cabrin_template_scenario_3 = "CABRIN_TEMPLATE";
+
 	public static String currentMu = "AMEX-E0";
 	public static String currentUser = "casm_dellc";
 	
@@ -40,7 +48,7 @@ public class AmexFileWatcher {
 		array.add(ExecutionStatus.Pending);
 		array.add(ExecutionStatus.EventWait);
 		
-		Connector conn = new Connector(configFile,true,"CABRIN_",false,"",false,"");
+		Connector conn = new Connector(configFile,true,"CABRIN_",true,"",true,"PROVOKED_");
 		DuApiConnection duapi = conn.getConnectionList().get(0);
 		
 		System.out.println("Scanning following path '"+path+"'");
@@ -56,26 +64,47 @@ public class AmexFileWatcher {
 			for(String cabUprocKey : currentFiles.keySet())
 			{
 				
-				
+				String cabrinTemplate_toUse=cabrin_template_scenario_1;
+
 				if(duapi.getExecutionList(cabUprocKey, array).size()==0)
 				{
 					System.out.println(count+" - Processing CABRIN_UPROC <"+cabUprocKey+"> with file \""+currentFiles.get(cabUprocKey)+"\"");
+					
+					int scenario=1;
+					String fileEntryKeyForRef = getGenericKeyFileName(currentFiles.get(cabUprocKey));
+					ArrayList<String> entries = new ArrayList<String>();
+					
+					if(fileEntryKeyForRef!=null)
+					{
+						entries = reference.get(fileEntryKeyForRef);
+						//entries here should look like : "CABRIN_<MAINJOB>","CABRIN_TEMPLATE_SCENARIO1","SESSIONNAME"
+						//or "CABRIN_<MAINJOB>","CABRIN_TEMPLATE_SCENARIO1"
+						if(entries.size()==3)
+						{
+							scenario=2;
+						}
+						
+						cabrinTemplate_toUse=entries.get(1);
+						
+					}
+					
 					
 					count++;
 					
 					if(!duapi.doesUprocExist(cabUprocKey))
 					{
-						duapi.duplicateUproc(cabrin_template, cabUprocKey, "CABRIN");
+						System.out.println(cabrinTemplate_toUse);
+						duapi.duplicateUproc(cabrinTemplate_toUse, cabUprocKey, "CABRIN");
 						duapi.setNonSimulOnUproc(cabUprocKey);
 					}
 					
 						Uproc currentCabUpr = duapi.getUproc(cabUprocKey);
 						Vector<Variable> varia = currentCabUpr.getVariables();
 						
-						if(varia.size()==3 
+					if(scenario==1 && varia.size()==3 
 								&& varia.get(1).getName().equals("COMMAND_PART2") 
 						   		&& varia.get(2).getName().equals("MAIN_JOB_TRIGGER"))
-						{	
+					{	
 								
 			
 								String command =varia.get(1).getValue();
@@ -92,10 +121,48 @@ public class AmexFileWatcher {
 								
 								main_job_trigger=main_job_trigger.replace(jpart, cabUprocKey.replace("CABRIN_",""));
 								varia.get(2).setValue(main_job_trigger);
+								//System.out.println(" main_job_trigger "+main_job_trigger);
+					}
+					else if(scenario==2 && varia.size()==3 
+								&& varia.get(1).getName().equals("COMMAND_PART2") 
+						   		&& varia.get(2).getName().equals("PROVOKED_TASK_NAME"))
+					{
+						
+						String command =varia.get(1).getValue();
+						String spart = command.substring(command.indexOf("-S")+2, command.indexOf("-E\"")).trim();
+						String fpart = command.substring(command.indexOf("\"XFPATH=/IPland/")+16,command.length()).trim();
+						
+						command=command.replace("-S"+spart, "-S"+getNumberFromFileName(currentFiles.get(cabUprocKey)));
+						command=command.replace(fpart, currentFiles.get(cabUprocKey));
+						varia.get(1).setValue(command);	
+						
+						varia.get(2).setValue("PROVOKED_"+entries.get(2));
+						
+						if(!duapi.taskAlreadyExists("PROVOKED_"+entries.get(2)))
+						{
+							duapi.createProvokedTask("PROVOKED_"+entries.get(2), entries.get(2),currentMu,currentUser);
 						}
+					}
+					else if(varia.size()==2
+								&& varia.get(1).getName().equals("COMMAND_PART2") )
+					{
+
+						String command =varia.get(1).getValue();
+						String spart = command.substring(command.indexOf("-S")+2, command.indexOf("-E\"")).trim();
+						String fpart = command.substring(command.indexOf("\"XFPATH=/IPland/")+16,command.length()).trim();
+						
+						command=command.replace("-S"+spart, "-S"+getNumberFromFileName(currentFiles.get(cabUprocKey)));
+						command=command.replace(fpart, currentFiles.get(cabUprocKey));
+						varia.get(1).setValue(command);	
+							
+					}
+					
+						
 						
 						currentCabUpr.setVariables(varia);
 						currentCabUpr.update();
+						
+						//System.out.println("yoooo-"+currentCabUpr.getVariables().get(2).getValue());
 					
 					
 					
@@ -279,7 +346,7 @@ public class AmexFileWatcher {
 	{
 		if(getGenericKeyFileName(fullFilename) != null)
 		{
-			return reference.get(getGenericKeyFileName(fullFilename));
+			return reference.get(getGenericKeyFileName(fullFilename)).get(0);
 		}
 		
 		return null;
@@ -321,13 +388,23 @@ public class AmexFileWatcher {
 			while ((line = reader.readNext()) != null) 
 		    {	    	
 				
-		        if(line.length>1)
+		        if(line.length>2)
 		        {
-		        	String key=line[0];
-		        	String value=line[1];
-		        
+		        	String key=line[0].trim();
+		        	String value=line[1].trim();
+		        	String template=line[2].trim();
+		        	ArrayList<String> entries = new ArrayList<String>();
+		        	entries.add("CABRIN_"+value.toUpperCase());
+		        	entries.add(template);
+		        	//System.out.println(template);
 		        	
-		        		reference.put(key, "CABRIN_"+value.toUpperCase());
+		        	if(line.length>3)
+		        	{
+		        		String session = line[3].trim();
+		        		entries.add(session);
+		        	}
+		        		
+		        	reference.put(key, entries);
 		        }
 		        	
 		        		

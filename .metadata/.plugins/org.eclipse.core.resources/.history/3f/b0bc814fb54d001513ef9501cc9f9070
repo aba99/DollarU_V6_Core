@@ -1,0 +1,21 @@
+package com.orsyp.client.amex;
+
+import java.io.FileNotFoundException;
+
+import com.orsyp.tools.ps.InMemoryFile;
+
+public class CreateSession {
+
+	
+	
+	public static void main(String[] args) throws FileNotFoundException {
+		
+		String csvFile = args[0];
+		
+		InMemoryFile csv = new InMemoryFile(csvFile);
+		
+		
+
+	}
+
+}

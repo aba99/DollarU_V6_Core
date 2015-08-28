@@ -4034,7 +4034,116 @@ public static String getStatus(ExecutionStatus status) {
          }
     	
     }
+    public void createProvokedTask(String taskName,String session,String mu,String user) throws Exception
+    {
+    	 try {
+         	
+         	taskName=taskName.trim().toUpperCase();
+         	
 
+
+         	if(this.getTaskByName(taskName, false) != null || this.getTaskByName(taskName,true) != null)
+         	{
+         		System.out.println("TASK : "+taskName+" already exists on "+this.getConnName()+"...Skipping");
+         		
+         		return;
+         		
+         	}
+         	
+         	if(!this.sesAlreadyExists(session))
+         	{
+         		System.out.println("Session "+session+" does not exist.Can't create "+taskName);
+         		
+         		return;
+         			
+         	}
+         	
+         	
+         	List<String> mus = getMus(); 
+    		List<String> users = getUsers();
+    		if (mus.size()==0)
+    			throw new Exception("No MU found");
+    		if (users.size()==0)
+    			throw new Exception("No user found");
+    		String aMu = mus.get(0);
+    		String aUser = users.get(0);
+    		if (users.contains(user))
+    			aUser = user;
+    		
+    		if(mus.contains(mu))
+    			aMu=mu;
+         	        	
+                 	
+         	
+         	
+         	 String name =taskName;
+             String version = defaultVersion;
+             String muName = aMu;
+             String sessionName=session;
+             String headerName=sess.get(session).getHeader();
+             boolean isTemplate = false;
+             
+             
+             Task obj = new Task (getContext (), TaskId.createWithName (name, version, muName, isTemplate));
+             obj.getIdentifier ().setSyntaxRules (OwlsSyntaxRules.getInstance ());
+             
+            
+             
+           
+
+            if(!this.tskAlreadyExists(taskName) )//&& NamingUtils.getToken_1_and_3_of_NODENAME(this.getConnName().substring(0,this.getConnName().indexOf("/"))).equals(NamingUtils.getToken_2_and_4_of_MU(taskName)))
+            {
+             	
+                 obj.getIdentifier().setSessionName(sessionName);
+                 obj.getIdentifier().setSessionVersion(version);
+                 obj.getIdentifier().setUprocName(headerName);
+                 obj.getIdentifier ().setUprocVersion (version);
+
+                 obj.setLabel ("Provoked Task");
+                 obj.setActive (true);
+                 obj.setUserName (aUser);
+                 FunctionalPeriod functionalPeriod = FunctionalPeriod.Day;
+                 obj.setFunctionalPeriod (functionalPeriod);
+                 obj.setTypeDayOffset (DayType.WORKING);
+                 obj.setTaskType (TaskType.Provoked);
+                 obj.setPriority ("001");
+                 obj.setQueue ("SYS_BATCH");
+                 obj.setPrinter ("IMPR");
+                 
+           /*      final VariableNumeric variableNumeric = new VariableNumeric ();
+                 variableNumeric.setName ("test");
+                 variableNumeric.setMin (1);
+                 variableNumeric.setMax (10);
+                 variableNumeric.setValue ("7");
+                 variableNumeric.setOrigin ("P");
+                 obj.setVariables (new ArrayList<Variable> (Arrays.asList (variableNumeric)));*/
+                 
+                 /* provoked task */
+                 TaskProvokedData tpd = new TaskProvokedData ();
+                 tpd.setStartLaunchTime (null);
+                 obj.setSpecificData (tpd);
+
+                 obj.setImpl (new OwlsTaskImpl ());
+                 obj.create ();
+         	
+         	   
+
+ 				System.out.println("PROVOKED TASK  ["+taskName+"] CREATED ON NODE=["+this.getConnName()+"] ---> OK");
+ 				
+             }
+             else
+             {
+             	System.out.println();
+            		System.out.println("PROVOKED TASK "+taskName+" on TARGET ["+this.getConnName()+"] : Already exists ...");
+            		System.out.println();            }
+         
+         } catch (SyntaxException e) {
+             e.printStackTrace (System.out);
+         } catch (UniverseException e) {
+             e.printStackTrace (System.out);
+         }
+    	
+    }
 
     public void c (String taskName,String rule,String lwsFromCSV) throws Exception {
 
@@ -4277,7 +4386,7 @@ public static String getStatus(ExecutionStatus status) {
     {
     	return "aba";
     }
-    public void createSession(String sessionName,HashMap<String,ArrayList<String>> $U_CHILDREN) throws UniverseException
+    public void createSession(String sessionName,HashMap<String,ArrayList<String>> $U_CHILDREN) throws Exception
     {
     	sessionName=sessionName.toUpperCase();
     	
@@ -4291,7 +4400,11 @@ public static String getStatus(ExecutionStatus status) {
 		sess.setImpl(new OwlsSessionImpl());
 		sess.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
 		
-		String header="HEADER_UPROC";
+		String header=sessionName+"_H";
+		if(!this.uprocAlreadyExists(header))
+		{
+			this.createUProc(header, new String[]{"set resexe=0"});
+		}
 		
 		SessionAtom root = new SessionAtom(new SessionData(header));
 		
@@ -4386,6 +4499,8 @@ public static String getStatus(ExecutionStatus status) {
 		
 		sess.setTree(new SessionTree(root));
 		sess.create();
+		sess.extract();
+		System.out.println("Session <"+sess.getName()+"> created");
 		
 		this.sess.put(sess.getName(),sess);
     }
@@ -4734,7 +4849,7 @@ public static String getStatus(ExecutionStatus status) {
 		obj.setApplication(app);
 		obj.setType("CL_INT");
 		obj.setFunctionalPeriod(FunctionalPeriod.Day);
-		obj.setLabel("Audit tool remote collector");
+		obj.setLabel("Header");
 		Memorization memo = new Memorization(Memorization.Type.ONE);
 		obj.setMemorization(memo);
 		
@@ -4753,6 +4868,9 @@ public static String getStatus(ExecutionStatus status) {
       
         
 		obj.create();
+		obj.extract();
+		System.out.println("Header Uproc <"+obj.getName()+"> created");
+		uprs.put(obj.getName(), obj);
 		
 		
 			script.save();	

@@ -25,10 +25,10 @@
 		<item value="1" key="FatJarPackageWizardPage.LIBRARY_HANDLING"/>
 		<list key="FatJarPackageWizardPage.DESTINATION_NAMES_ID">
 			<item value="C:\Users\administrator\Desktop\Projects\Amex\FileWatcher\fw.jar"/>
+			<item value="C:\Users\administrator\Desktop\Projects\Amex\snap.jar"/>
 			<item value="C:\Users\administrator\Desktop\Projects\Amex\FileWatcher\fwd.jar"/>
 			<item value="C:\Users\administrator\Desktop\modify_deps_sessionControl.jar"/>
 			<item value="D:\modify_deps_sessionControl.jar"/>
-			<item value="C:\Users\administrator\Desktop\Projects\StateOfDelaware\check.jar"/>
 		</list>
 		<list key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION_HISTORY">
 			<item value="C:\Users\administrator\Desktop\eclipse_workspaces\v6_core.xml"/>

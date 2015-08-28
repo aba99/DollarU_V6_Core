@@ -17,9 +17,11 @@
 <fullyQualifiedTypeName name="java.util.Vector"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.DependencyCondition"/>
 <fullyQualifiedTypeName name="java.util.regex.Pattern"/>
-<fullyQualifiedTypeName name="java.util.HashMap"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.SessionControl"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.SessionControl.Type"/>
-<fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="java.util.Arrays"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.NonSimultaneityCondition"/>
+<fullyQualifiedTypeName name="com.orsyp.tools.ps.InMemoryFile"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="java.util.HashMap"/>
 </qualifiedTypeNameHistroy>
