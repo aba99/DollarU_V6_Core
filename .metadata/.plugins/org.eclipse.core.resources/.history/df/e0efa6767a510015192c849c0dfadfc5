@@ -420,20 +420,20 @@ public class AmexFileWatcher {
 	public static String getGenericKeyFileName(String filename)
 	{//get filename without googlenumber, that is stored as a key in the reference table
 		
-		//System.out.println("File name "+filename);
 		String keyToCheck=null;
+		
 		if(EndsWithGxxxxVxxDotTrigger(filename))
 		{
-			keyToCheck=filename.replaceAll(".G\\d\\d\\d\\dV\\d\\d.TRIGGER$", "");
+			keyToCheck=filename.replaceAll(".*G\\d\\d\\d\\dV\\d\\d.TRIGGER$", "");
 		}
 		else if (EndsWithJDxxxDotTrigger(filename))
 		{
-			keyToCheck=filename.replaceAll(".JD\\d\\d\\d.TRIGGER$", "");
+			keyToCheck=filename.replaceAll(".*JD\\d\\d\\d.TRIGGER$", "");
 
 		}
 		else if (EndsWithJYYYYDDDDotTrigger(filename))
 		{
-			keyToCheck=filename.replaceAll(".J\\d\\d\\d\\d\\d\\d\\d.TRIGGER$", "");
+			keyToCheck=filename.replaceAll(".*J\\d\\d\\d\\d\\d\\d\\d.TRIGGER$", "");
 
 		}
 		else if(filename.endsWith(".TRIGGER"))
@@ -441,7 +441,7 @@ public class AmexFileWatcher {
 			keyToCheck=filename.replaceAll(".TRIGGER", "");
 		}
 			
-		//System.out.println(" key to check "+keyToCheck);
+		System.out.println(" key to check "+keyToCheck);
 		
 		if(reference.containsKey(keyToCheck))
 		{
