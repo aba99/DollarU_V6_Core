@@ -113,7 +113,6 @@ import com.orsyp.api.uproc.DependencyCondition;
 import com.orsyp.api.uproc.LaunchFormula;
 import com.orsyp.api.uproc.NonSimultaneityCondition;
 import com.orsyp.api.uproc.ProcessingDateControl;
-import com.orsyp.api.uproc.ResourceCondition;
 import com.orsyp.api.uproc.SessionControl;
 import com.orsyp.api.uproc.Uproc;
 import com.orsyp.api.uproc.UprocFilter;
@@ -4739,66 +4738,7 @@ public static String getStatus(ExecutionStatus status) {
 			
     	}
     }
-    public void addLogicalResToUproc(String upr,String logicalRes) throws UniverseException
-    {
-    	if(uprs.containsKey(upr))
-    	{
-        	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
-
-        	
-			MuControl muControl= new MuControl();			
-			muControl.setType (Type.SAME_MU);//constants for the dependency condition
-        	
-			
-			ResourceCondition rc = new ResourceCondition();
-			rc.setExpected(true);//expected is chosen
-			rc.setFatal(false);//fatal box is NOT checked
-			rc.setMuControl (muControl);
-			rc.setType(ResourceCondition.Type.FILE);
-			rc.setAttribute("EXIST");					
-			rc.setResource(logicalRes);
-			/*rc.setQuota1(2);
-			rc.setQuota2(3);   */ 
-			
-			
-			LaunchFormula lf = new LaunchFormula();
-			lf = uprs.get(upr).getFormula();
-			String text;
-			
-    		
-    		
-    	    
-    		rc.setNum(curDeps.size()+1);
-    		
-
-    		if(curDeps.size()+1<10)
-    		{
-    				text = "AND =C0"+(curDeps.size()+1);// OK
-    		}
-    		else 
-    		{
-    				text = "AND =C"+(curDeps.size()+1);
-    		}
-    					       
-    						
-    				        				
-    		lf.appendText(text);
-
-    	    			
-    	   
-    			
-    		Vector<ResourceCondition> curResCond = new Vector<ResourceCondition>();
-    		curResCond.add(rc);
-    			
-    		uprs.get(upr).setResourceConditions(curResCond);
-    		uprs.get(upr).setFormula(lf);
-    		System.out.println("- "+uprs.get(upr).getName()+" has "+logicalRes+" added");
-    		uprs.get(upr).update();			
-			
-			
-			
-    	}
-    }
+    
     
     
     public void setSessionControlOnUproc(String upr) throws UniverseException

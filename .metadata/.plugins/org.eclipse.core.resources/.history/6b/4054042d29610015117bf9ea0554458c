@@ -4754,45 +4754,60 @@ public static String getStatus(ExecutionStatus status) {
 			rc.setExpected(true);//expected is chosen
 			rc.setFatal(false);//fatal box is NOT checked
 			rc.setMuControl (muControl);
-			rc.setType(ResourceCondition.Type.FILE);
-			rc.setAttribute("EXIST");					
 			rc.setResource(logicalRes);
-			/*rc.setQuota1(2);
-			rc.setQuota2(3);   */ 
+		        
 			
 			
 			LaunchFormula lf = new LaunchFormula();
-			lf = uprs.get(upr).getFormula();
 			String text;
-			
+			int depNum;
     		
-    		
-    	    
-    		rc.setNum(curDeps.size()+1);
-    		
-
-    		if(curDeps.size()+1<10)
+    		for(int d=0;d<curDeps.size();d++)
     		{
-    				text = "AND =C0"+(curDeps.size()+1);// OK
-    		}
-    		else 
+    			
+    			curDeps.get(d).setNum(d+1);
+    		}   
+    	    	
+    		
+   
+    		for(int q=0;q<curDeps.size();q++)
     		{
-    				text = "AND =C"+(curDeps.size()+1);
-    		}
+    			depNum=curDeps.get(q).getNum();	
+    					        
+    					        if(q != (curDeps.size()-1))
+    							{					
+    						        	if(depNum<10)
+    									{
+    										text = " =C0"+depNum+" AND";// OK
+    									}
+    									else 
+    									{
+    										text = " =C"+depNum+" AND";
+    									}
+    							}
+    							else
+    							{
+    								if(depNum<10)
+    								{
+    									text = " =C0"+depNum;// OK
+    								}
+    								else 
+    								{
+    									text = " =C"+depNum;
+    								}
     					       
     						
-    				        				
-    		lf.appendText(text);
+    				        		}
+    					
+    					lf.appendText(text);
 
     	    			
-    	   
+    	    }
     			
-    		Vector<ResourceCondition> curResCond = new Vector<ResourceCondition>();
-    		curResCond.add(rc);
     			
-    		uprs.get(upr).setResourceConditions(curResCond);
+    		uprs.get(upr).setDependencyConditions(curDeps);
     		uprs.get(upr).setFormula(lf);
-    		System.out.println("- "+uprs.get(upr).getName()+" has "+logicalRes+" added");
+    		System.out.println("- "+uprs.get(upr).getName()+" has "+depconHashToAdd.keySet()+" added");
     		uprs.get(upr).update();			
 			
 			

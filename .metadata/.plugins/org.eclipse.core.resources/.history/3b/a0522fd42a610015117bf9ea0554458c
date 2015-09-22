@@ -4757,8 +4757,7 @@ public static String getStatus(ExecutionStatus status) {
 			rc.setType(ResourceCondition.Type.FILE);
 			rc.setAttribute("EXIST");					
 			rc.setResource(logicalRes);
-			/*rc.setQuota1(2);
-			rc.setQuota2(3);   */ 
+		        
 			
 			
 			LaunchFormula lf = new LaunchFormula();
