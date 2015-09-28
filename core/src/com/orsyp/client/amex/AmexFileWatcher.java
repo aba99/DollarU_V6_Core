@@ -20,6 +20,7 @@ import com.orsyp.api.uproc.Uproc;
 import com.orsyp.tools.ps.Connector;
 import com.orsyp.tools.ps.DuApiConnection;
 
+import java.sql.Timestamp;
 
 public class AmexFileWatcher {
 
@@ -34,15 +35,21 @@ public class AmexFileWatcher {
 	public static String currentMu = "AMEX-E0";
 	public static String currentUser = "casm_dellc";
 	
+	
+	
+	
 	public static void main(String[] args) throws Exception  
 	{		
 
 		String refFile = args[0];
 		String configFile = args[1];
 		String path = args[2];
+		String sleeptime = args[3];
 		
+		long sleep = Long.valueOf(Integer.toString((Integer.parseInt(sleeptime)*1000)));
 		
 		readReferenceFile(refFile);
+		
 		array.add(ExecutionStatus.Running);
 		array.add(ExecutionStatus.Aborted);
 		array.add(ExecutionStatus.Pending);
@@ -51,134 +58,214 @@ public class AmexFileWatcher {
 		Connector conn = new Connector(configFile,true,"CABRIN_",true,"",true,"PROVOKED_");
 		DuApiConnection duapi = conn.getConnectionList().get(0);
 		
-		System.out.println("Scanning following path '"+path+"'");
+		java.util.Date date= new java.util.Date();
+		Timestamp ts = new Timestamp(date.getTime());
+		
+		System.out.println(ts+" Scanning following path '"+path+"'");
+		
 		final File folder = new File(path);
 		int count =1;
 		
+		int spartNumber = 0;
+		
 		while(true)
 		{
+			
+			
 			HashMap<String,String> currentFiles = getFilesToProcess(folder);//CABRINUPROC_FILENAMETOPROCESS
 		
-			
-			
-			for(String cabUprocKey : currentFiles.keySet())
+			if(currentFiles!=null && !currentFiles.isEmpty() && currentFiles.keySet()!=null)
 			{
-				
-				String cabrinTemplate_toUse=cabrin_template_scenario_1;
-
-				if(duapi.getExecutionList(cabUprocKey, array).size()==0)
-				{
-					System.out.println(count+" - Processing CABRIN_UPROC <"+cabUprocKey+"> with file \""+currentFiles.get(cabUprocKey)+"\"");
-					
-					int scenario=1;
-					String fileEntryKeyForRef = getGenericKeyFileName(currentFiles.get(cabUprocKey));
-					ArrayList<String> entries = new ArrayList<String>();
-					
-					if(fileEntryKeyForRef!=null)
-					{
-						entries = reference.get(fileEntryKeyForRef);
-						//entries here should look like : "CABRIN_<MAINJOB>","CABRIN_TEMPLATE_SCENARIO1","SESSIONNAME"
-						//or "CABRIN_<MAINJOB>","CABRIN_TEMPLATE_SCENARIO1"
-						if(entries.size()==3)
-						{
-							scenario=2;
-						}
-						
-						cabrinTemplate_toUse=entries.get(1);
-						
-					}
-					
-					
-					count++;
-					
-					if(!duapi.doesUprocExist(cabUprocKey))
-					{
-						//System.out.println(cabrinTemplate_toUse);
-						duapi.duplicateUproc(cabrinTemplate_toUse, cabUprocKey, "CABRIN");
-						duapi.setNonSimulOnUproc(cabUprocKey);
-					}
-					
-						Uproc currentCabUpr = duapi.getUproc(cabUprocKey);
-						Vector<Variable> varia = currentCabUpr.getVariables();
-						
-					if(scenario==1 && varia.size()==3 
-								&& varia.get(1).getName().equals("COMMAND_PART2") 
-						   		&& varia.get(2).getName().equals("MAIN_JOB_TRIGGER"))
-					{	
-								
 			
+					for(String cabUprocKey : currentFiles.keySet())
+					{
+						
+						String cabrinTemplate_toUse=cabrin_template_scenario_1;
+		
+						if(duapi.getExecutionList(cabUprocKey, array).size()==0)
+						{
+							if(spartNumber>99999)
+							{
+								spartNumber=0;
+							}
+							java.util.Date date3= new java.util.Date();
+							Timestamp ts3 = new Timestamp(date3.getTime());
+							
+							System.out.println(ts3+": count="+count+"- Processing CABRIN_UPROC <"+cabUprocKey+"> with file \""+currentFiles.get(cabUprocKey)+"\"");
+							
+							int scenario=1;
+							String fileEntryKeyForRef = getGenericKeyFileName(currentFiles.get(cabUprocKey));
+							ArrayList<String> entries = new ArrayList<String>();
+							
+							if(fileEntryKeyForRef!=null)
+							{
+								entries = reference.get(fileEntryKeyForRef);
+								//entries here should look like : "CABRIN_<MAINJOB>","CABRIN_TEMPLATE_SCENARIO1","SESSIONNAME"
+								//or "CABRIN_<MAINJOB>","CABRIN_TEMPLATE_SCENARIO1"
+								if(entries.size()==3)
+								{
+									scenario=2;
+								}
+								
+								cabrinTemplate_toUse=entries.get(1);
+								
+							}
+							
+							
+							count++;
+							
+							if(!duapi.doesUprocExist(cabUprocKey))
+							{
+								//System.out.println(cabrinTemplate_toUse);
+								try{
+								duapi.duplicateUproc(cabrinTemplate_toUse, cabUprocKey, "CABRIN");
+								}
+								catch (Exception e)
+								{
+									e.printStackTrace();
+									continue;
+								}
+								duapi.setNonSimulOnUproc(cabUprocKey);
+							}
+							else
+							{	
+								java.util.Date date7= new java.util.Date();
+								Timestamp ts7 = new Timestamp(date7.getTime());
+							
+								System.out.println(ts7+": Using an already existing version of CABRIN_UPROC <"+cabUprocKey+">");
+							}
+							
+								Uproc currentCabUpr = duapi.getUproc(cabUprocKey);
+								Vector<Variable> varia = currentCabUpr.getVariables();
+								
+							if(scenario==1 && varia.size()==3 
+										&& varia.get(1).getName().equals("COMMAND_PART2") 
+								   		&& varia.get(2).getName().equals("MAIN_JOB_TRIGGER"))
+							{	
+										
+					
+										String command =varia.get(1).getValue();
+										String spart = command.substring(command.indexOf("-S")+2, command.indexOf("-E\"")).trim();
+										String fpart = command.substring(command.indexOf("\"XFPATH=/IPland/")+16,command.length()).trim();
+										
+										command=command.replace("-S"+spart, "-S"+spartNumber);//getNumberFromFileName(currentFiles.get(cabUprocKey)));
+										spartNumber++;
+										
+										command=command.replace(fpart, currentFiles.get(cabUprocKey));
+										varia.get(1).setValue(command);
+										
+									
+										
+										String main_job_trigger = varia.get(2).getValue();								
+										String jpart=main_job_trigger.substring(main_job_trigger.indexOf("upr=")+4, main_job_trigger.indexOf("user=")).trim();
+										
+										main_job_trigger=main_job_trigger.replace(jpart, cabUprocKey.replace("CABRIN_",""));
+										varia.get(2).setValue(main_job_trigger);
+										//System.out.println(" main_job_trigger "+main_job_trigger);
+							}
+							else if(scenario==2 && varia.size()==3 
+										&& varia.get(1).getName().equals("COMMAND_PART2") 
+								   		&& varia.get(2).getName().equals("PROVOKED_TASK_NAME"))
+							{
+								
 								String command =varia.get(1).getValue();
 								String spart = command.substring(command.indexOf("-S")+2, command.indexOf("-E\"")).trim();
 								String fpart = command.substring(command.indexOf("\"XFPATH=/IPland/")+16,command.length()).trim();
 								
-								command=command.replace("-S"+spart, "-S"+getNumberFromFileName(currentFiles.get(cabUprocKey)));
+								command=command.replace("-S"+spart, "-S"+spartNumber);//getNumberFromFileName(currentFiles.get(cabUprocKey)));
+								spartNumber++;
 								command=command.replace(fpart, currentFiles.get(cabUprocKey));
 								varia.get(1).setValue(command);	
+								
+								varia.get(2).setValue("PROVOKED_"+entries.get(2));
+								
+								if(!duapi.taskAlreadyExists("PROVOKED_"+entries.get(2)))
+								{
+									
+									duapi.createProvokedTask("PROVOKED_"+entries.get(2), entries.get(2),currentMu,currentUser);
+								
+									 java.util.Date date4= new java.util.Date();
+										Timestamp ts4 = new Timestamp(date4.getTime());
+										
+										System.out.println(ts4+": Task <"+"PROVOKED_"+entries.get(2)+"> created");
+		
+								
+								}
+							}
+							else if(varia.size()==2
+										&& varia.get(1).getName().equals("COMMAND_PART2") )
+							{
+		
+								String command =varia.get(1).getValue();
+								String spart = command.substring(command.indexOf("-S")+2, command.indexOf("-E\"")).trim();
+								String fpart = command.substring(command.indexOf("\"XFPATH=/IPland/")+16,command.length()).trim();
+								
+								command=command.replace("-S"+spart, "-S"+spartNumber);//getNumberFromFileName(currentFiles.get(cabUprocKey)));
+								spartNumber++;
+								command=command.replace(fpart, currentFiles.get(cabUprocKey));
+								varia.get(1).setValue(command);	
+									
+							}
 							
 								
-								String main_job_trigger = varia.get(2).getValue();								
-								String jpart=main_job_trigger.substring(main_job_trigger.indexOf("upr=")+4, main_job_trigger.indexOf("user=")).trim();
 								
-								main_job_trigger=main_job_trigger.replace(jpart, cabUprocKey.replace("CABRIN_",""));
-								varia.get(2).setValue(main_job_trigger);
-								//System.out.println(" main_job_trigger "+main_job_trigger);
-					}
-					else if(scenario==2 && varia.size()==3 
-								&& varia.get(1).getName().equals("COMMAND_PART2") 
-						   		&& varia.get(2).getName().equals("PROVOKED_TASK_NAME"))
-					{
-						
-						String command =varia.get(1).getValue();
-						String spart = command.substring(command.indexOf("-S")+2, command.indexOf("-E\"")).trim();
-						String fpart = command.substring(command.indexOf("\"XFPATH=/IPland/")+16,command.length()).trim();
-						
-						command=command.replace("-S"+spart, "-S"+getNumberFromFileName(currentFiles.get(cabUprocKey)));
-						command=command.replace(fpart, currentFiles.get(cabUprocKey));
-						varia.get(1).setValue(command);	
-						
-						varia.get(2).setValue("PROVOKED_"+entries.get(2));
-						
-						if(!duapi.taskAlreadyExists("PROVOKED_"+entries.get(2)))
-						{
-							duapi.createProvokedTask("PROVOKED_"+entries.get(2), entries.get(2),currentMu,currentUser);
+								currentCabUpr.setVariables(varia);
+								currentCabUpr.update();
+								java.util.Date date5= new java.util.Date();
+								Timestamp ts5 = new Timestamp(date5.getTime());
+								
+								System.out.println(ts5+" : Updated variables on <"+currentCabUpr.getName()+">");
+								System.out.println(ts5+" : Scenario "+scenario+" will be run for this CABRIN_UPROC <"+currentCabUpr.getName()+">");
+		
+							
+							
+							duapi.createLaunch(cabUprocKey, currentUser, currentMu);
+							
+							
 						}
-					}
-					else if(varia.size()==2
-								&& varia.get(1).getName().equals("COMMAND_PART2") )
-					{
-
-						String command =varia.get(1).getValue();
-						String spart = command.substring(command.indexOf("-S")+2, command.indexOf("-E\"")).trim();
-						String fpart = command.substring(command.indexOf("\"XFPATH=/IPland/")+16,command.length()).trim();
-						
-						command=command.replace("-S"+spart, "-S"+getNumberFromFileName(currentFiles.get(cabUprocKey)));
-						command=command.replace(fpart, currentFiles.get(cabUprocKey));
-						varia.get(1).setValue(command);	
+						else
+						{
+							java.util.Date date5= new java.util.Date();
+							Timestamp ts5 = new Timestamp(date5.getTime());
 							
+							/*System.out.println("");
+							System.out.println("");
+							System.out.println("Total execution list : ");
+							System.out.println("+++++++++++++++++++++++++++++++++++++++++++++");
+							
+							for(int ex=0;ex<duapi.getExecutionList().size();ex++)
+							{
+								System.out.println(duapi.getExecutionList().get(ex).getUprocName()
+										+" -- Numlanc "+duapi.getExecutionList().get(ex).getNumlanc() 
+										+" -- Numproc "+duapi.getExecutionList().get(ex).getNumproc());
+							}
+							
+							System.out.println("+++++++++++++++++++++++++++++++++++++++++++++");
+							System.out.println("");
+							System.out.println("");*/
+							
+							
+							System.out.println(ts5+": CABRIN_UPROC <"+cabUprocKey+"> will not be triggered because of an ABORTED entry");
+							
+							for(int exec=0;exec<duapi.getExecutionList(cabUprocKey, array).size();exec++)
+							{
+								
+								System.out.println(ts5+": "+duapi.getExecutionList(cabUprocKey, array).get(exec).getUprocName()+"-- NumLanc "+duapi.getExecutionList(cabUprocKey, array).get(exec).getNumlanc()+" -- NumUproc "+duapi.getExecutionList().get(exec).getNumproc());
+							}
+							
+						}
+							
+						
 					}
-					
-						
-						
-						currentCabUpr.setVariables(varia);
-						currentCabUpr.update();
-						
-						//System.out.println("yoooo-"+currentCabUpr.getVariables().get(2).getValue());
-					
-					
-					
-					duapi.createLaunch(cabUprocKey, currentUser, currentMu);
-					
-					/*File f = new File(path+"\\"+currentFiles.get(cabUprocKey));
-					f.delete();*/
-				}
-					
-				
+			
 			}
-
 			
 			 try {
-			        Thread.sleep(1000l);
-			    } catch(InterruptedException e){}
+			        Thread.sleep(sleep);
+			    } catch(InterruptedException e){
+			    	e.printStackTrace();
+			    	continue;
+			    }
 			 	
 	}
 		
@@ -189,25 +276,28 @@ public class AmexFileWatcher {
 		
 	public static HashMap<String,String> getFilesToProcess(final File folder) {
 		
+		java.util.Date date8= new java.util.Date();
+    	Timestamp ts8 = new Timestamp(date8.getTime());
+		System.out.println();
+		System.out.println(ts8+": Checking for trigger files in \""+folder.getPath()+"\"");
+		
+		
+		
 		HashMap<String,String> currentFilesToProcess= new HashMap<String,String>();
 		
+		File testDirectory = new File(folder.getPath());
+		File[] files = testDirectory.listFiles();
 		
-	    for (final File fileEntry : folder.listFiles()) {
-	        
-	    	if (fileEntry.isDirectory()) 
-	        {
-	            getFilesToProcess(fileEntry);
-	        }
-	        else 
-	        {
+	    for (int f=0;f<files.length;f++) {
+	       
 	        	
 	        	
-	        	if(EndsWithGxxxxVxxDotTrigger(fileEntry.getName()))
+	        	if(EndsWithGxxxxVxxDotTrigger(files[f].getName()))
 	            {
 	            
 		           
-		            	String gnum = getGoogleNumber(fileEntry.getName());
-		            	String cabrinjob = getCabrinUprocName(fileEntry.getName());
+		            	String gnum = getGoogleNumber(files[f].getName());
+		            	String cabrinjob = getCabrinUprocName(files[f].getName());
 		            	
 		            	if(cabrinjob!=null)
 		            	{
@@ -219,22 +309,30 @@ public class AmexFileWatcher {
 				            	
 				            	if(new_gnum<existing_gnum)
 				            	{
-				            		currentFilesToProcess.put(cabrinjob,fileEntry.getName());
+				            		currentFilesToProcess.put(cabrinjob,files[f].getName());
 				            	}//get the file with the lowest googoo number
 				            }
 				            else
 				            {
-				            	currentFilesToProcess.put(cabrinjob, fileEntry.getName());
+				            	currentFilesToProcess.put(cabrinjob, files[f].getName());
 				            }
 				            
+		            	}
+		            	else
+		            	{
+
+		        			java.util.Date date10= new java.util.Date();
+			            	Timestamp ts10 = new Timestamp(date10.getTime());
+			        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\" in reference file");
+		        		
 		            	}
 	
 		        }
 	        	
-	        	else if(EndsWithJDxxxDotTrigger(fileEntry.getName()))
+	        	else if(EndsWithJDxxxDotTrigger(files[f].getName()))
 	        	{
-		        		String gnum = getJDxxxNumber(fileEntry.getName());
-		        		String cabrinjob = getCabrinUprocName(fileEntry.getName());
+		        		String gnum = getJDxxxNumber(files[f].getName());
+		        		String cabrinjob = getCabrinUprocName(files[f].getName());
 		        		
 		        		if(cabrinjob!=null)
 		        		{
@@ -246,21 +344,27 @@ public class AmexFileWatcher {
 				            	
 				            	if(new_gnum<existing_gnum)
 				            	{
-				            		currentFilesToProcess.put(cabrinjob,fileEntry.getName());
+				            		currentFilesToProcess.put(cabrinjob,files[f].getName());
 				            	}//get the file with the lowest googoo number
 				            }
 				            else
 				            {
-				            	currentFilesToProcess.put(cabrinjob, fileEntry.getName());
+				            	currentFilesToProcess.put(cabrinjob, files[f].getName());
 				            }
+		        		}
+		        		else
+		        		{
+		        			java.util.Date date10= new java.util.Date();
+			            	Timestamp ts10 = new Timestamp(date10.getTime());
+			        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\" in reference file");
 		        		}
 	        		
 	        	}
 	        	
-	        	else if(EndsWithJYYYYDDDDotTrigger(fileEntry.getName()))
+	        	else if(EndsWithJYYYYDDDDotTrigger(files[f].getName()))
 	        	{
-		        		String gnum = getJxxxxxxxNumber(fileEntry.getName());
-		        		String cabrinjob = getCabrinUprocName(fileEntry.getName());
+		        		String gnum = getJxxxxxxxNumber(files[f].getName());
+		        		String cabrinjob = getCabrinUprocName(files[f].getName());
 		        		
 		        		if(cabrinjob!=null)
 		        		{
@@ -272,32 +376,85 @@ public class AmexFileWatcher {
 				            	
 				            	if(new_gnum<existing_gnum)
 				            	{
-				            		currentFilesToProcess.put(cabrinjob,fileEntry.getName());
+				            		currentFilesToProcess.put(cabrinjob,files[f].getName());
 				            	}//get the file with the lowest googoo number
 				            }
 				            else
 				            {
-				            	currentFilesToProcess.put(cabrinjob, fileEntry.getName());
+				            	currentFilesToProcess.put(cabrinjob, files[f].getName());
 				            }
+		        		}
+		        		else
+		        		{
+
+		        			java.util.Date date10= new java.util.Date();
+			            	Timestamp ts10 = new Timestamp(date10.getTime());
+			        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\" in reference file");
+		        		
 		        		}
 	        		
 	        	}
-	        	else if (fileEntry.getName().endsWith(".TRIGGER"))
+	        	else if (files[f].getName().endsWith(".TRIGGER"))
 	        	{
-	        		String cabrinjob = getCabrinUprocName(fileEntry.getName());
+	        		String cabrinjob = getCabrinUprocName(files[f].getName());
 	        		
 	        		if(cabrinjob!=null)
 	        		{
 
 			          
-			            	currentFilesToProcess.put(cabrinjob, fileEntry.getName());
+			            	currentFilesToProcess.put(cabrinjob, files[f].getName());
 			            
 	        		}
+	        		else
+	        		{
+	        			java.util.Date date10= new java.util.Date();
+		            	Timestamp ts10 = new Timestamp(date10.getTime());
+		        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\"");
+	        		}
 	        		
+	        	}
+	        	else
+	        	{
+
+        			java.util.Date date10= new java.util.Date();
+	            	Timestamp ts10 = new Timestamp(date10.getTime());
+	        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\" in reference file");
+        		
 	        	}
 	        	
 	        	
 	        }
+	    
+	    
+	    if(currentFilesToProcess.size()!=0)
+	    {
+	    	java.util.Date date2= new java.util.Date();
+	    	Timestamp ts2 = new Timestamp(date2.getTime());
+		
+	    	System.out.println(ts2+": Files to process listed below :");
+			String line=null;
+			for(String cabKey:currentFilesToProcess.keySet())
+			{
+				java.util.Date date6= new java.util.Date();
+				Timestamp ts6 = new Timestamp(date6.getTime());
+				
+				System.out.println(ts6+": CABRIN_UPROC <"+ cabKey +"> will be processed with file "+currentFilesToProcess.get(cabKey));
+				line =(ts6+": CABRIN_UPROC <"+ cabKey +"> will be processed with file "+currentFilesToProcess.get(cabKey));
+
+			}
+
+			for(int l=0;l<line.length();l++)
+			{
+				System.out.print("-");
+			}
+			System.out.println();
+			
+	    }
+	    else
+	    {
+	    	java.util.Date date2= new java.util.Date();
+	    	Timestamp ts2 = new Timestamp(date2.getTime());
+	    	System.out.println(ts2+": No files found for this iteration...Looping");
 	    }
 	    
 	    return currentFilesToProcess;
@@ -306,6 +463,11 @@ public class AmexFileWatcher {
 		// Test start and end characters.
 		return Pattern.matches(".*G\\d\\d\\d\\dV\\d\\d.TRIGGER$", value);
 	    }
+	public static boolean EndsWithGxxxxVDotTrigger(String value) {
+		// Test start and end characters.
+		return Pattern.matches(".*G\\d\\d\\d\\dV.TRIGGER$", value);
+	    }
+	
 	public static boolean EndsWithJDxxxDotTrigger(String value)
 	{
 		return Pattern.matches(".*JD\\d\\d\\d.TRIGGER$", value);
@@ -396,15 +558,13 @@ public class AmexFileWatcher {
 		        	ArrayList<String> entries = new ArrayList<String>();
 		        	entries.add("CABRIN_"+value.toUpperCase());
 		        	entries.add(template);
-		        	//System.out.println(template);
 		        	
 		        	if(line.length>3)
 		        	{
 		        		String session = line[3].trim();
-		        		//System.out.println("Session : "+session);
+		        		
 		        		if(!session.isEmpty())
 		        		{
-		        			//System.out.println("Session : "+session);
 		        			entries.add(session);
 		        		}
 		        	}
@@ -415,6 +575,12 @@ public class AmexFileWatcher {
 		        		
 		        
 		    }	
+			
+			java.util.Date date5= new java.util.Date();
+			Timestamp ts5 = new Timestamp(date5.getTime());
+			
+			System.out.println(ts5+" Reference File \""+fileName+"\" has been read");
+			System.out.println(ts5+" Number of entries found in Reference File : "+reference.size());
 	}
 
 	public static String getGenericKeyFileName(String filename)
@@ -441,7 +607,6 @@ public class AmexFileWatcher {
 			keyToCheck=filename.replaceAll(".TRIGGER", "");
 		}
 			
-		//System.out.println(" key to check "+keyToCheck);
 		
 		if(reference.containsKey(keyToCheck))
 		{
@@ -451,16 +616,7 @@ public class AmexFileWatcher {
 		{
 			return null;
 		}
-		
-		/*for(String key:reference.keySet())
-		{
-			if(filename.contains(key))
-			{
-				return key;
-			}
-		}
-		
-		return null;*/
+
 	}
 	
 }

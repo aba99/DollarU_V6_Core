@@ -53,9 +53,9 @@ public class InMemoryFile {
 	        		ArrayList<String> placer = new ArrayList<String>();
 	        		placer.addAll(arrayList);
 	        		hash_store.put(key, placer);
-	        		arrayList.clear();
 	        	}
-	        		
+        		arrayList.clear();
+	
 	        }
 	    }	
 		

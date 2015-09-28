@@ -4,6 +4,7 @@ import static java.lang.System.out;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -428,12 +429,24 @@ public class DuApiConnection {
 		uproc.update();
 		uproc.extract();
 		
+		if(doesUprocExist(targetName))
+		{
+			return;
+		}
+		
         UprocId newDuplicatedUprocId = new UprocId(targetName, defaultVersion);
 		newDuplicatedUprocId.setId(targetName);  
         
         uproc.setImpl(new OwlsUprocImpl());
         uproc.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
         uproc.duplicate(newDuplicatedUprocId, uproc.getLabel());
+        
+        java.util.Date date3= new java.util.Date();
+		Timestamp ts3 = new Timestamp(date3.getTime());
+		
+		System.out.println(ts3+": Uproc <"+targetName+"> created off of <"+sourceUproc+">");
+		
+
         
         Uproc obj = new Uproc(getContext(), newDuplicatedUprocId);
         obj.setImpl(new OwlsUprocImpl());
@@ -665,7 +678,35 @@ public class DuApiConnection {
 	        list.extract();
 	        return list;
 	    }
-	
+	public ItemList<LaunchItem> getLaunchList(String uproc) throws UniverseException {
+        /* pattern for task name  */
+        LaunchFilter filter = new LaunchFilter();
+        filter.setSessionId("*");
+        filter.setUprocId("*"+uproc+"*");
+        filter.setMuId("*");
+        filter.setSessionName("*");
+        filter.setUprocName("*");
+        filter.setMuName("*");
+        filter.selectAllStatus();
+        filter.setUserName("*");
+        filter.setUserId("*");
+        filter.setBeginDate("*");  /**@todo use Date ?? */
+        filter.setBeginHour("*");  /**@todo use Date ?? */
+        filter.setEndDate("*");  /**@todo use Date ?? */
+        filter.setEndHour("*");  /**@todo use Date ?? */
+        filter.setProcessingDate("*");
+        filter.setNumlancMin("0000000");
+        filter.setNumlancMax("9999999");
+        filter.setNumsessMin("0000000");
+        filter.setNumsessMax("9999999");
+        filter.setNumprocMin("0000000");
+        filter.setNumprocMax("9999999");
+        
+        LaunchList list = new LaunchList(getContext(), filter);
+        list.setImpl(new OwlsLaunchListImpl());
+        list.extract();
+        return list;
+    }
 	
 	public void createDQM(String dqmname,int joblimit) {
 
@@ -4654,19 +4695,154 @@ public static String getStatus(ExecutionStatus status) {
 		
 	}
 
-    public void addDepToUproc(String upr,HashMap<String,String>depconHashToAdd) throws UniverseException
+    public void addDepToUprocAdhoc(String upr,ArrayList<String>depconHashToAdd) throws UniverseException
+    {//only adds the parts of deoconHashToAdd that upr does not have
+    	Uproc uproc = null;
+    	ArrayList<String> actualDepsToAdd = new ArrayList<String>();
+    	if(!doesUprocExist(upr))
+    	{
+    		System.out.println("Uproc "+upr+" does not exist on node");
+
+    		return;
+    	}
+    	System.out.println("About to set new dep on "+upr+" with "+depconHashToAdd);
+    	if(uprs.containsKey(upr))
+    	{
+    		uproc = uprs.get(upr);
+    	}
+    	else
+    	{
+    		UprocId uprocId = new UprocId(upr, defaultVersion);
+    		uproc = new Uproc(getContext(), uprocId);
+            
+    		uproc.setImpl(new OwlsUprocImpl());
+    		uproc.getIdentifier().setSyntaxRules(OwlsSyntaxRules.getInstance());
+
+    		uproc.extract();
+    	}
+    	if(uproc!=null )
+    	{
+        	Vector<DependencyCondition> curDeps = uproc.getDependencyConditions();
+
+        	ArrayList<String> curNames = new ArrayList<String>();
+        	
+        	for(int cdeps=0;cdeps<curDeps.size();cdeps++)
+        	{
+        		curNames.add(curDeps.get(cdeps).getUproc());
+        	}
+    
+        	for(int newdeps=0;newdeps<depconHashToAdd.size();newdeps++)
+        	{
+        		if(!curNames.contains(depconHashToAdd.get(newdeps)) )//&& doesUprocExist(depconHashToAdd.get(newdeps)))
+        		{
+        			if(doesUprocExist(depconHashToAdd.get(newdeps)))
+        			{
+        				actualDepsToAdd.add(depconHashToAdd.get(newdeps));	
+        			}
+        			else
+        			{
+        				System.out.println("Dep Uproc "+depconHashToAdd.get(newdeps)+" does not exist on node");
+        			}
+        		}
+        	}
+        	
+        	SessionControl sessionControl = new SessionControl();
+			sessionControl.setType(SessionControl.Type.ANY_SESSION);
+
+			MuControl muControl= new MuControl();			
+			muControl.setType (Type.SAME_MU);//constants for the dependency condition
+        	
+			for(String depUpr:actualDepsToAdd)
+			{
+				DependencyCondition dc = new DependencyCondition();
+			
+			    dc.setExpected(true);//expected is chosen
+			    dc.setFatal(false);//fatal box is NOT checked
+				dc.setUserControl(UserControl.ANY);//user is any
+				dc.setFunctionalPeriod(FunctionalPeriod.Day);
+				dc.setMuControl (muControl);
+				dc.setSessionControl(sessionControl);
+				
+				dc.setNum(1);
+				dc.setUproc(depUpr);
+				dc.setStatus(Status.COMPLETED);
+		        
+				curDeps.add(dc);
+			}
+			
+			LaunchFormula lf = new LaunchFormula();
+			String text;
+			int depNum;
+    		
+    		for(int d=0;d<curDeps.size();d++)
+    		{
+    			
+    			curDeps.get(d).setNum(d+1);
+    		}   
+    	    			
+   
+    		for(int q=0;q<curDeps.size();q++)
+    		{
+    			depNum=curDeps.get(q).getNum();	
+    					        
+    					        if(q != (curDeps.size()-1))
+    							{					
+    						        	if(depNum<10)
+    									{
+    										text = " =C0"+depNum+" AND";// OK
+    									}
+    									else 
+    									{
+    										text = " =C"+depNum+" AND";
+    									}
+    							}
+    							else
+    							{
+    								if(depNum<10)
+    								{
+    									text = " =C0"+depNum;// OK
+    								}
+    								else 
+    								{
+    									text = " =C"+depNum;
+    								}
+    					       
+    						
+    				        		}
+    					
+    					lf.appendText(text);
+
+    	    			
+    	    }
+    			
+    			
+    		uproc.setDependencyConditions(curDeps);
+    		uproc.setFormula(lf);
+    		System.out.println("- "+uproc.getName()+" has "+depconHashToAdd+" added");
+    		uproc.update();			
+			
+    	}
+    	else
+    	{
+    		System.out.println("Uproc "+upr+" does not exist on node");
+    	}
+			
+    	
+    }
+    
+    public void addDepToUproc(String upr,ArrayList<String>depconHashToAdd) throws UniverseException
     {
     	if(uprs.containsKey(upr))
     	{
         	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
 
         	SessionControl sessionControl = new SessionControl();
-			sessionControl.setType(SessionControl.Type.SAME_SESSION_AND_EXECUTION);
+			sessionControl.setType(SessionControl.Type.ANY_SESSION);
 
 			MuControl muControl= new MuControl();			
 			muControl.setType (Type.SAME_MU);//constants for the dependency condition
         	
-			for(String depUpr:depconHashToAdd.keySet())
+			for(String depUpr:depconHashToAdd)
 			{
 				DependencyCondition dc = new DependencyCondition();
 			
@@ -4732,14 +4908,14 @@ public static String getStatus(ExecutionStatus status) {
     			
     		uprs.get(upr).setDependencyConditions(curDeps);
     		uprs.get(upr).setFormula(lf);
-    		System.out.println("- "+uprs.get(upr).getName()+" has "+depconHashToAdd.keySet()+" added");
+    		System.out.println("- "+uprs.get(upr).getName()+" has "+depconHashToAdd+" added");
     		uprs.get(upr).update();			
 			
 			
 			
     	}
     }
-    public void addLogicalResToUproc(String upr,String logicalRes) throws UniverseException
+    public void addResourceConditionToUproc(String upr,String logicalRes) throws UniverseException
     {
     	if(uprs.containsKey(upr))
     	{
@@ -4976,7 +5152,10 @@ public static String getStatus(ExecutionStatus status) {
         
         l.create();	
      
-		System.out.println("Launch created for <"+uprocName+"> with nmLanc ="+l.getNumlanc());
+        java.util.Date date5= new java.util.Date();
+		Timestamp ts5 = new Timestamp(date5.getTime());
+		
+		System.out.println(ts5+" LOG : Launch created for <"+uprocName+"> with nmLanc ="+l.getNumlanc());
 
 
         //return l.getIdentifier();

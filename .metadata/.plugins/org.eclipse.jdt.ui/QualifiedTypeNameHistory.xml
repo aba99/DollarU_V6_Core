@@ -24,4 +24,5 @@
 <fullyQualifiedTypeName name="com.orsyp.tools.ps.InMemoryFile"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.ResourceCondition"/>
 </qualifiedTypeNameHistroy>

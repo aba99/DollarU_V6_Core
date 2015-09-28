@@ -1,0 +1,66 @@
+/*
+ package com.automic.provisioning.configuration;
+ 
+
+import com.automic.provisioning.cli.AES256Encryptor;
+
+
+public class OauthConfiguration {
+    private final String username;
+    private final String department;
+    private final String password;
+
+    private final String applicationUrl;
+    private final String clientId;
+    private final String clientSecret;
+    private final String name;
+
+    public OauthConfiguration(String username, String department, String password, String application_url, String client_id, String client_secret, String name) {
+        String encrypted="";
+        AES256Encryptor crypt = null;
+        try {
+            crypt = new AES256Encryptor("B174A26A71490437AA024E4FADD5B497","9E892875A52C59A3");
+            encrypted = crypt.encrypt(password);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        this.username = username;
+        this.department = department;
+        this.password = encrypted;
+        this.applicationUrl = application_url;
+        this.clientId = client_id;
+        this.clientSecret = client_secret;
+        this.name = name;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getApplicationUrl() {
+        return applicationUrl;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public String getClientSecret() {
+        return clientSecret;
+    }
+}
+*/

@@ -1,0 +1,68 @@
+package com.automic.provisioning.configuration;
+
+import com.automic.provisioning.ConfigurationException;
+import com.google.common.base.Strings;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.Properties;
+
+public class PropertiesReader {
+    private final Properties properties;
+
+    public PropertiesReader(Class referenceClass, String fileName) {
+        if (new File(fileName).isDirectory()
+                || "/".equals(fileName)
+                || "\\".equals(fileName)
+                || Strings.isNullOrEmpty(fileName)
+                || "./".equals(fileName)) {
+            throw new ConfigurationException("Specified properties file name does not represent a file.");
+        }
+        InputStream propertiesStream = getPropertiesStream(referenceClass, fileName);
+        if (propertiesStream == null) {
+            throw new ConfigurationException("Configuration file not found.");
+        }
+        properties = readFromStream(propertiesStream);
+    }
+
+    public String getPropertyOrNull(String key) {
+        return getPropertyOrDefaultValue(key, null);
+    }
+
+    public String getPropertyOrDefaultValue(String key, String defaultValue) {
+        String propertyValue = properties.getProperty(key);
+        if (Strings.isNullOrEmpty(propertyValue)) propertyValue = defaultValue;
+        return propertyValue;
+    }
+
+    private Properties readFromStream(InputStream propertiesStream) {
+        Properties properties = new Properties();
+        try {
+            properties.load(propertiesStream);
+        } catch (IOException e) {
+            throw new ConfigurationException("Configuration file could not be read.", e);
+        }
+
+        return properties;
+    }
+
+    public static InputStream getPropertiesStream(Class referenceClass, String propertiesFileName) {
+        InputStream propertiesStream;
+        try {
+            propertiesStream = Files.newInputStream(
+                    FileSystems.getDefault().getPath(propertiesFileName),
+                    StandardOpenOption.READ
+            );
+        } catch (IOException e) {
+            propertiesStream = referenceClass.getClassLoader().getResourceAsStream(propertiesFileName);
+            if (propertiesStream == null) {
+                propertiesStream = referenceClass.getResourceAsStream(propertiesFileName);
+            }
+        }
+        return propertiesStream;
+    }
+}

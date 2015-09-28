@@ -1,0 +1,92 @@
+package com.automic.provisioning;
+
+import com.automic.provisioning.configuration.CustomerConfiguration;
+import com.automic.provisioning.password.IPasswordGenerator;
+import com.uc4.api.UC4UserName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+public class Provisioning {
+
+    public static final String USER_GROUP_NAME = "USER";
+    public static final String ADMIN_GROUP_NAME = "ADMIN";
+    public static final String TMP_DEPARTMENT = "TMP";
+    public static final String TMP_USERNAME_PREFIX = "ADMINISTRATOR";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Provisioning.class);
+
+    private final AeConnectionFactory connectionFactory;
+    private final IPasswordGenerator passwordGenerator;
+
+    public Provisioning(AeConnectionFactory connectionFactory, IPasswordGenerator passwordGenerator) {
+        this.connectionFactory = connectionFactory;
+        this.passwordGenerator = passwordGenerator;
+    }
+
+    /**
+     * Search for the next free client and create a new client
+     * An admin user is created with temporary authorizations and username to create additional groups in the new client
+     * The admin is renamed to the required name and assigned to the admin group
+     * The user specific authorizations are revoked after all other steps are finished.
+     *
+     * @throws AeException
+     */
+    public AeCredentials provision(int offset,
+                                   CustomerConfiguration customerConfiguration,
+                                   AeCredentials adminCredentials) {
+
+        LOGGER.info("Started provisioning for customer " + customerConfiguration);
+
+        try {
+            int customerClient = getNextFreeClient(offset, adminCredentials);
+            LOGGER.info("Retrieved available customerClient " + customerClient);
+
+            String customerClientTitle = customerConfiguration.getClientTitle();
+
+            String tmpUsername = TMP_USERNAME_PREFIX + customerClient;
+            UC4UserName tmpUserAndDepartment = new UC4UserName(tmpUsername + "/" + TMP_DEPARTMENT);
+
+            AeCredentials retVal;
+
+            String password = passwordGenerator.generate();
+
+            try (AeConnection aeAdmin = connectionFactory.createConnection(adminCredentials)) {
+                LOGGER.info("Creating new AE client with number {} and title {}", customerClient, customerClientTitle);
+                aeAdmin.createClient(customerClient, customerClientTitle);
+                LOGGER.info("Creating new AE client with number {} and title {}", customerClient, customerClientTitle);
+                aeAdmin.createAdminForClient(
+                        customerClient,
+                        tmpUserAndDepartment,
+                        customerConfiguration.getFirstName(),
+                        customerConfiguration.getLastName(),
+                        customerConfiguration.getEmail(),
+                        password);
+                retVal = new AeCredentials(customerClient, customerConfiguration.getUser(), customerConfiguration.getDepartment(), password);
+            }
+
+            AeCredentials tempCredentials = new AeCredentials(customerClient, tmpUsername, TMP_DEPARTMENT, retVal.getPassword());
+            try (AeConnection connection = connectionFactory.createConnection(tempCredentials)) {
+                UC4UserName customerUserName = new UC4UserName(customerConfiguration.getAdminUserAndDepartment());
+                connection.renameUser(tmpUserAndDepartment, customerUserName);
+            }
+            LOGGER.info("Created credentials " + retVal);
+            return retVal;
+
+        } catch (Exception e) {
+            LOGGER.error("Error during provisioning", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+    private int getNextFreeClient(int offset, AeCredentials adminCredentials) throws IOException {
+        try (AeConnection aeAdmin = connectionFactory.createConnection(adminCredentials)) {
+            return aeAdmin.findNextFreeClient(offset);
+        }
+    }
+
+
+}
