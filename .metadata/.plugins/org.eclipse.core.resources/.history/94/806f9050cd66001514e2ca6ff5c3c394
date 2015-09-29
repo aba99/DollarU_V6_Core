@@ -1,0 +1,107 @@
+package com.orsyp.client.amex;
+
+
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import au.com.bytecode.opencsv.CSVReader;
+
+import com.orsyp.tools.ps.Connector;
+import com.orsyp.tools.ps.InMemoryFile;
+
+
+
+public class AddDepConToUproc {
+
+	static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>();
+	
+	
+	public static void main(String[] args) throws Exception {
+
+		String fileName = args[0];
+		String csvFile = args[1];
+		
+
+
+
+		CSVReader reader = new CSVReader(new FileReader(csvFile),',', '\"', '\0');
+		ArrayList<String> arrayList = new ArrayList<String>();
+
+		String [] line;			
+
+		//parse lines
+		while ((line = reader.readNext()) != null) 
+	    {	    	
+			
+	        if(line.length>1)
+	        {
+	        	String key=line[0];
+	        	
+	        	for(int l=1;l<line.length;l++)
+	        	{
+	        		
+	        		
+	        		arrayList.add(line[l].trim());
+	        		
+	        	}
+	        	
+	        	if(!hash_store.containsKey(key))
+	        	{
+	        		ArrayList<String> placer = new ArrayList<String>();
+	        		placer.addAll(arrayList);
+	        		hash_store.put(key, placer);
+	        	}
+        		arrayList.clear();
+	
+	        }
+	    }	
+		
+		
+		reader.close();
+	   
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		Connector conn = new Connector(fileName,false,"",false,"",false,"");
+		
+		
+		
+		for(String uprKey:csvF.getHash_Store().keySet())
+		{
+			{	
+				if(!conn.getConnectionList().get(0).doesUprocExist(csvF.getHash_Store().get(uprKey).get(0)))
+				{
+							conn.getConnectionList().get(0).duplicateUproc("CABRIN_UPROC", csvF.getHash_Store().get(uprKey).get(0));
+						
+				}
+				
+				try{
+				
+					conn.getConnectionList().get(0).addDepToUprocAdhoc(uprKey,csvF.getHash_Store().get(uprKey));
+			}
+				catch(Exception e)
+				{
+					System.out.println(uprKey+" failed");
+					continue;
+				}
+				}
+			
+			
+		}
+		
+	}	
+		
+
+}
+
+	
+

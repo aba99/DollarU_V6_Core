@@ -6,6 +6,7 @@ package com.orsyp.client.amex;
 // The condition of CABRIN_<JOB> being triggered uniquely still holds for all 3 scenarios.
 import java.io.File;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public class AmexFileWatcher {
 		
 		long sleep = Long.valueOf(Integer.toString((Integer.parseInt(sleeptime)*1000)));
 		
-		readReferenceFile(refFile);
+		
 		
 		array.add(ExecutionStatus.Running);
 		array.add(ExecutionStatus.Aborted);
@@ -58,19 +59,19 @@ public class AmexFileWatcher {
 		Connector conn = new Connector(configFile,true,"CABRIN_",true,"",true,"PROVOKED_");
 		DuApiConnection duapi = conn.getConnectionList().get(0);
 		
-		java.util.Date date= new java.util.Date();
-		Timestamp ts = new Timestamp(date.getTime());
-		
-		System.out.println(ts+" Scanning following path '"+path+"'");
 		
 		final File folder = new File(path);
 		int count =1;
-		
+		int loop = 1;
 		int spartNumber = 0;
 		
 		while(true)
 		{
-			
+			System.out.println();
+			System.out.println();
+			System.out.println(" LOOP #"+loop);
+			System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			readReferenceFile(refFile);
 			
 			HashMap<String,String> currentFiles = getFilesToProcess(folder);//CABRINUPROC_FILENAMETOPROCESS
 		
@@ -250,7 +251,11 @@ public class AmexFileWatcher {
 							for(int exec=0;exec<duapi.getExecutionList(cabUprocKey, array).size();exec++)
 							{
 								
-								System.out.println(ts5+": "+duapi.getExecutionList(cabUprocKey, array).get(exec).getUprocName()+"-- NumLanc "+duapi.getExecutionList(cabUprocKey, array).get(exec).getNumlanc()+" -- NumUproc "+duapi.getExecutionList().get(exec).getNumproc());
+								System.out.println(ts5+": "+duapi.getExecutionList(cabUprocKey, array).get(exec).getUprocName()
+										+"-- NumLanc "+duapi.getExecutionList(cabUprocKey, array).get(exec).getNumlanc()
+										+" -- NumUproc "+duapi.getExecutionList(cabUprocKey,array).get(exec).getNumproc()
+										+" -- "+duapi.getExecutionList(cabUprocKey, array).get(exec).getStatus());
+										//+" --"+duapi.getExecution);
 							}
 							
 						}
@@ -261,6 +266,8 @@ public class AmexFileWatcher {
 			}
 			
 			 try {
+					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					loop++;
 			        Thread.sleep(sleep);
 			    } catch(InterruptedException e){
 			    	e.printStackTrace();
@@ -286,7 +293,11 @@ public class AmexFileWatcher {
 		HashMap<String,String> currentFilesToProcess= new HashMap<String,String>();
 		
 		File testDirectory = new File(folder.getPath());
-		File[] files = testDirectory.listFiles();
+		File[] files = testDirectory.listFiles(new FilenameFilter() {
+		    public boolean accept(File dir, String name) {
+		        return name.toLowerCase().endsWith(".trigger");
+		    }
+		});
 		
 	    for (int f=0;f<files.length;f++) {
 	       
@@ -304,8 +315,8 @@ public class AmexFileWatcher {
 		            	
 				            if(currentFilesToProcess.containsKey(cabrinjob))
 				            {
-				            	int new_gnum =Integer.parseInt(gnum);
-				            	int existing_gnum = Integer.parseInt(getGoogleNumber(currentFilesToProcess.get(cabrinjob)));
+				            	int new_gnum =parseWithDefault(gnum,99);
+				            	int existing_gnum = parseWithDefault(getGoogleNumber(currentFilesToProcess.get(cabrinjob)),99);
 				            	
 				            	if(new_gnum<existing_gnum)
 				            	{
@@ -339,8 +350,8 @@ public class AmexFileWatcher {
 
 				            if(currentFilesToProcess.containsKey(cabrinjob))
 				            {
-				            	int new_gnum =Integer.parseInt(gnum);
-				            	int existing_gnum = Integer.parseInt(getJDxxxNumber(currentFilesToProcess.get(cabrinjob)));
+				            	int new_gnum =parseWithDefault(gnum,99);
+				            	int existing_gnum = parseWithDefault(getJDxxxNumber(currentFilesToProcess.get(cabrinjob)),99);
 				            	
 				            	if(new_gnum<existing_gnum)
 				            	{
@@ -371,8 +382,8 @@ public class AmexFileWatcher {
 
 				            if(currentFilesToProcess.containsKey(cabrinjob))
 				            {
-				            	int new_gnum =Integer.parseInt(gnum);
-				            	int existing_gnum = Integer.parseInt(getJxxxxxxxNumber(currentFilesToProcess.get(cabrinjob)));
+				            	int new_gnum =parseWithDefault(gnum,99);
+				            	int existing_gnum = parseWithDefault(getJxxxxxxxNumber(currentFilesToProcess.get(cabrinjob)),99);
 				            	
 				            	if(new_gnum<existing_gnum)
 				            	{
@@ -617,6 +628,16 @@ public class AmexFileWatcher {
 			return null;
 		}
 
+	}
+	
+	static int parseWithDefault(String s, int def) {
+	    try {
+	        return Integer.parseInt(s);
+	    }
+	    catch (NumberFormatException e) {
+	        // It's OK to ignore "e" here because returning a default value is the documented behaviour on invalid input.
+	        return def;
+	    }
 	}
 	
 }

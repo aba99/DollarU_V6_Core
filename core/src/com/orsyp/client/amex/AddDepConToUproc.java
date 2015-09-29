@@ -1,48 +1,121 @@
 package com.orsyp.client.amex;
 
 
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashMap;
 
-import java.io.IOException;
+import au.com.bytecode.opencsv.CSVReader;
 
-import com.orsyp.UniverseException;
 import com.orsyp.tools.ps.Connector;
-import com.orsyp.tools.ps.InMemoryFile;
 
 
 
 public class AddDepConToUproc {
 
-	static int count = 1;
+	static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>();
 	
-	public static void main(String[] args) throws IOException {
+	
+	public static void main(String[] args) throws Exception {
 
 		String fileName = args[0];
 		String csvFile = args[1];
 		
-		InMemoryFile csvF = new InMemoryFile(csvFile);
-		csvF.store();
+
+
+
+		@SuppressWarnings("resource")
+		CSVReader reader = new CSVReader(new FileReader(csvFile),',', '\"', '\0');
+		ArrayList<String> arrayList = new ArrayList<String>();
+
+		String [] line;			
+
+		//parse lines
+		while ((line = reader.readNext()) != null) 
+	    {	    	
+			
+	        if(line.length>1)
+	        {
+	        	String key=line[0];
+	        	
+	        	for(int l=1;l<line.length;l++)
+	        	{
+	        		
+	        		
+	        		arrayList.add(line[l].trim());
+	        		
+	        	}
+	        	
+	        	if(!table.containsKey(key))
+	        	{
+	        		ArrayList<String> placer = new ArrayList<String>();
+	        		placer.addAll(arrayList);
+	        		table.put(key, placer);
+	        	}
+	        	else
+	        	{
+	        		for(int e=0;e<arrayList.size();e++)
+	        		{
+	        			table.get(key).add(arrayList.get(e));
+	        		}
+	        	}
+	
+	        }
+	        
+    		arrayList.clear();
+
+	    }	
 		
-		Connector conn = new Connector(fileName,false,"",false,"",false,"");
-		for(String uprKey:csvF.getHash_Store().keySet())
+		
+		
+		
+		
+		Connector conn = new Connector(fileName,true,"",false,"",false,"");
+		
+	/*	
+		for(String uprKey:table.keySet())
 		{
-			//if(conn.getConnectionList().get(0).getUprocHashMap_from_outside().containsKey(uprKey))
-			//conn.getConnectionList().get(0).setSessionControlOnUproc(uprKey);
-			{
 				
-					//System.out.println(uprKey+" will have stat dependencies removed "+csvF.getHash_Store().get(uprKey).get(0));
-				try {
-					conn.getConnectionList().get(0).addDepToUprocAdhoc(uprKey,csvF.getHash_Store().get(uprKey));
-				} catch (UniverseException e) {
-					System.out.println("Error : "+uprKey+" failed");
-					//e.printStackTrace();
+				for(int s=0;s<table.get(uprKey).size();s++)
+				{
+					if(!conn.getConnectionList().get(0).doesUprocExist(table.get(uprKey).get(s)))
+				
+					{
+							conn.getConnectionList().get(0).duplicateUproc("CABRIN_UPROC", table.get(uprKey).get(s));
+						
+					}
+				}
+				
+		}
+		*/
+		
+		for(String uprKey:table.keySet())
+		{
+			
+			try{
+				
+					conn.getConnectionList().get(0).addDepToUproc(uprKey,table.get(uprKey));
+					
+					
+				}
+				catch(Exception e)
+				{
+					System.out.println(uprKey+" failed");
 					continue;
 				}
-			}
-			
-			
+				
 		}
-	}	
 		
+		for(String key:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		{
+			if(!table.containsKey(key)&& !key.contains("CABRIN_"))
+			{
+				conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(key).delete();
+			}
+		}
+				
+	
+	}
 
 }
 

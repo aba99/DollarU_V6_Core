@@ -4699,13 +4699,14 @@ public static String getStatus(ExecutionStatus status) {
     {//only adds the parts of deoconHashToAdd that upr does not have
     	Uproc uproc = null;
     	ArrayList<String> actualDepsToAdd = new ArrayList<String>();
+    	
     	if(!doesUprocExist(upr))
     	{
-    		System.out.println("Uproc "+upr+" does not exist on node");
+    		System.out.println("@ Uproc "+upr+" does not exist on node");
 
     		return;
     	}
-    	System.out.println("About to set new dep on "+upr+" with "+depconHashToAdd);
+    	//System.out.println("About to set new dep on "+upr+" with "+depconHashToAdd);
     	if(uprs.containsKey(upr))
     	{
     		uproc = uprs.get(upr);
@@ -4741,7 +4742,7 @@ public static String getStatus(ExecutionStatus status) {
         			}
         			else
         			{
-        				System.out.println("Dep Uproc "+depconHashToAdd.get(newdeps)+" does not exist on node");
+        				System.out.println("# Dep Uproc "+depconHashToAdd.get(newdeps)+" does not exist on node");
         			}
         		}
         	}
@@ -4818,23 +4819,36 @@ public static String getStatus(ExecutionStatus status) {
     			
     		uproc.setDependencyConditions(curDeps);
     		uproc.setFormula(lf);
-    		System.out.println("- "+uproc.getName()+" has "+depconHashToAdd+" added");
-    		uproc.update();			
+    		uproc.update();		
+    		System.out.println("UPROC <"+uproc.getName()+"> has "+depconHashToAdd+" added");
+
 			
     	}
     	else
     	{
-    		System.out.println("Uproc "+upr+" does not exist on node");
+    		System.out.println("@ Uproc "+upr+" does not exist on node");
     	}
 			
     	
     }
-    
-    public void addDepToUproc(String upr,ArrayList<String>depconHashToAdd) throws UniverseException
+
+    public void orDepWithThisDep(String upr,String depCon,String oredDep) throws UniverseException
     {
     	if(uprs.containsKey(upr))
     	{
         	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
+        	ArrayList<String> curNames = new ArrayList<String>();
+
+        	for(int cdeps=0;cdeps<curDeps.size();cdeps++)
+        	{
+        		curNames.add(curDeps.get(cdeps).getUproc());
+        	}
+    
+        	if(!curNames.contains(depCon))
+        	{
+        		System.out.println("Uproc <"+upr+"> does not have Dep <"+depCon+">");
+        		return;
+        	}
 
         	SessionControl sessionControl = new SessionControl();
 			sessionControl.setType(SessionControl.Type.ANY_SESSION);
@@ -4842,7 +4856,210 @@ public static String getStatus(ExecutionStatus status) {
 			MuControl muControl= new MuControl();			
 			muControl.setType (Type.SAME_MU);//constants for the dependency condition
         	
-			for(String depUpr:depconHashToAdd)
+			
+			DependencyCondition dc = new DependencyCondition();
+								dc.setExpected(true);//expected is chosen
+							    dc.setFatal(false);//fatal box is NOT checked
+								dc.setUserControl(UserControl.ANY);//user is any
+								dc.setFunctionalPeriod(FunctionalPeriod.Day);
+								dc.setMuControl (muControl);
+								dc.setSessionControl(sessionControl);
+								dc.setNum(1);
+								dc.setUproc(oredDep);
+								dc.setStatus(Status.ABSENT);
+						        
+								curDeps.add(dc);
+			
+			
+			LaunchFormula lf = new LaunchFormula();
+			String text;
+			int depNum;
+    		int relevantDepNum =0;
+    		int relevantDepNumOred=0;
+    		
+    		for(int d=0;d<curDeps.size();d++)
+    		{
+    			
+    			curDeps.get(d).setNum(d+1);
+    			
+    			if(curDeps.get(d).getUproc().equalsIgnoreCase(depCon))
+    			{
+    				relevantDepNum = curDeps.get(d).getNum();
+    			}
+    			if(curDeps.get(d).getUproc().equalsIgnoreCase(oredDep))
+    			{
+    				relevantDepNumOred =curDeps.get(d).getNum(); 
+    			}
+    		}   
+    	    			
+   
+    		for(int q=0;q<curDeps.size();q++)
+    		{
+    			depNum=curDeps.get(q).getNum();	
+    			
+    			if(depNum==relevantDepNumOred)
+    			{
+    				continue;
+    			}
+
+    					        if(q != (curDeps.size()-1))
+    							{	
+    					        
+    						        	if(depNum<10)
+    									{
+    						        		if(depNum == relevantDepNum)
+    						        		{
+    						        			if(relevantDepNumOred<10)
+    						        			{
+    						        				text = " (=C0"+depNum+" OR =C0"+relevantDepNumOred+") AND";
+    						        			}
+    						        			else
+    						        			{
+    						        				text = " (=C0"+depNum+" OR =C"+relevantDepNumOred+") AND";
+
+    						        			}
+    						        		}
+    						        		else
+    						        		{
+    						        			text = " =C0"+depNum+" AND";// OK
+    						        		}
+    										
+    									}
+    									else 
+    									{
+    										if(depNum == relevantDepNum)
+    						        		{
+    						        			if(relevantDepNumOred<10)
+    						        			{
+    						        				text = " (=C"+depNum+" OR =C0"+relevantDepNumOred+") AND";
+    						        			}
+    						        			else
+    						        			{
+    						        				text = " (=C"+depNum+" OR =C"+relevantDepNumOred+") AND";
+    						        			}
+    						        		}
+    										else
+    										{
+        										text = " =C"+depNum+" AND";
+
+    										}
+    									}
+    							}
+    							else
+    							{
+    							
+    								if(depNum<10)
+									{
+						        		if(depNum == relevantDepNum)
+						        		{
+						        			if(relevantDepNumOred<10)
+						        			{
+						        				text = " (=C0"+depNum+" OR =C0"+relevantDepNumOred+")";
+						        			}
+						        			else
+						        			{
+						        				text = " (=C0"+depNum+" OR =C"+relevantDepNumOred+")";
+
+						        			}
+						        		}
+						        		else
+						        		{
+						        			text = " =C0"+depNum;// OK
+						        		}
+										
+									}
+									else 
+									{
+										if(depNum == relevantDepNum)
+						        		{
+						        			if(relevantDepNumOred<10)
+						        			{
+						        				text = " (=C"+depNum+" OR =C0"+relevantDepNumOred+")";
+						        			}
+						        			else
+						        			{
+						        				text = " (=C"+depNum+" OR =C"+relevantDepNumOred+")";
+						        			}
+						        		}
+										else
+										{
+    										text = " =C"+depNum;
+
+										}
+									}
+    					       
+    						
+    				        	}
+    					
+    					lf.appendText(text);
+
+    			}
+    	    
+    		
+    		
+    		
+    		//System.out.println(lf.getFormulaText());
+    		uprs.get(upr).setDependencyConditions(curDeps);
+    		uprs.get(upr).setFormula(lf);
+    		uprs.get(upr).update();			
+			
+			
+			
+    	}
+    	else
+    	{
+    		System.out.println("Uproc "+upr+" not found ");
+    		return;
+    		
+    	}
+    }
+    
+    public void addDepToUproc(String upr,ArrayList<String>depconHashToAdd) throws UniverseException
+    {
+    	if(uprs.containsKey(upr))
+    	{
+    		System.out.println("Adding deps on "+upr);
+        	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
+
+        	
+        	ArrayList<String> actualDepsToAdd = new ArrayList<String>();
+        	ArrayList<String> curNames = new ArrayList<String>();
+        	
+        	for(int cdeps=0;cdeps<curDeps.size();cdeps++)
+        	{
+        		curNames.add(curDeps.get(cdeps).getUproc());
+        	}
+    
+        	for(int newdeps=0;newdeps<depconHashToAdd.size();newdeps++)
+        	{
+        		if(!curNames.isEmpty() || !curNames.contains(depconHashToAdd.get(newdeps)) )//&& doesUprocExist(depconHashToAdd.get(newdeps)))
+        		{
+        			
+        			if(doesUprocExist(depconHashToAdd.get(newdeps)))
+        			{
+        				actualDepsToAdd.add(depconHashToAdd.get(newdeps));	
+        			}
+        			
+        		}
+        	}
+        	
+        	
+        	
+        	
+        	
+        	
+        	SessionControl sessionControl = new SessionControl();
+			sessionControl.setType(SessionControl.Type.ANY_SESSION);
+
+			MuControl muControl= new MuControl();			
+			muControl.setType (Type.SAME_MU);//constants for the dependency condition
+        	
+			if(actualDepsToAdd.size()==0)
+			{
+				return;
+			}
+			
+			for(String depUpr:actualDepsToAdd)
 			{
 				DependencyCondition dc = new DependencyCondition();
 			
@@ -4908,11 +5125,17 @@ public static String getStatus(ExecutionStatus status) {
     			
     		uprs.get(upr).setDependencyConditions(curDeps);
     		uprs.get(upr).setFormula(lf);
-    		System.out.println("- "+uprs.get(upr).getName()+" has "+depconHashToAdd+" added");
+    		System.out.println("- "+uprs.get(upr).getName()+" has "+actualDepsToAdd+" added");
     		uprs.get(upr).update();			
 			
 			
 			
+    	}
+    	else
+    	{
+    		System.out.println("Uproc "+upr+" not found ");
+    		return;
+    		
     	}
     }
     public void addResourceConditionToUproc(String upr,String logicalRes) throws UniverseException
