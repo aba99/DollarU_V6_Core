@@ -372,7 +372,7 @@ public class AmexFileWatcher {
 		        		{
 		        			java.util.Date date10= new java.util.Date();
 			            	Timestamp ts10 = new Timestamp(date10.getTime());
-			        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\"");
+			        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\" in reference file");
 		        		}
 	        		
 	        	}
@@ -405,7 +405,7 @@ public class AmexFileWatcher {
 
 		        			java.util.Date date10= new java.util.Date();
 			            	Timestamp ts10 = new Timestamp(date10.getTime());
-			        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\"");
+			        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\" in reference file");
 		        		
 		        		}
 	        		

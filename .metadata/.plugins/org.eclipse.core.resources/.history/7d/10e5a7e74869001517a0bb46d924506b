@@ -75,7 +75,6 @@ public class AddDepConToUproc {
 		
 		for(String uprKey:table.keySet())
 		{
-			//conn.getConnectionList().get(0).duplicateUproc("TEMPLATE", uprKey);
 				
 				for(int s=0;s<table.get(uprKey).size();s++)
 				{

@@ -121,13 +121,13 @@ public class OrConditionalDep {
 			conn.getConnectionList().get(0).addConditionalDependency(uprKey, conditionsToOr);
 			
 		}
-		/*for(String uprocKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		for(String uprocKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
 		{
 			if(!table.containsKey(uprocKey))
 			{
 				conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uprocKey).delete();
 			}
-		}*/
+		}
 		
 	
 	}

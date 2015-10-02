@@ -4851,25 +4851,8 @@ public static String getStatus(ExecutionStatus status) {
         		deps_cnumber.put(curDeps.get(cdeps).getUproc(),curDeps.get(cdeps).getNum());
         		listOfCNumbers.add(curDeps.get(cdeps).getNum());
         	}
-
-        	HashMap<String,String> temp = new HashMap<String,String>();
-        	for(String k : depCon_oredDep.keySet())
-        	{
-        		temp.put(k, depCon_oredDep.get(k));
-        	}
-        	for(String key : temp.keySet())
-        	{
-        		if(!deps_cnumber.containsKey(key))
-        		{
-        			depCon_oredDep.remove(key);
-        		}
-        		
-        		if(deps_cnumber.containsKey(temp.get(key)))
-        		{
-        			depCon_oredDep.remove(key);
-        		}
-        	}
-
+    
+        	
         	SessionControl sessionControl = new SessionControl();
 			sessionControl.setType(SessionControl.Type.ANY_SESSION);
 
@@ -4969,7 +4952,7 @@ public static String getStatus(ExecutionStatus status) {
     		
     		
     		
-    		System.out.println(upr+" After  "+lf.getFormulaText());
+    		System.out.println(upr+" After "+lf.getFormulaText());
     		uprs.get(upr).setDependencyConditions(curDeps);
     		uprs.get(upr).setFormula(lf);
     		try{

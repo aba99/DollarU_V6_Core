@@ -75,14 +75,13 @@ public class AddDepConToUproc {
 		
 		for(String uprKey:table.keySet())
 		{
-			//conn.getConnectionList().get(0).duplicateUproc("TEMPLATE", uprKey);
 				
 				for(int s=0;s<table.get(uprKey).size();s++)
 				{
 					if(!conn.getConnectionList().get(0).doesUprocExist(table.get(uprKey).get(s)))
 				
 					{
-							conn.getConnectionList().get(0).duplicateUproc(cabrintemplate, table.get(uprKey).get(s));
+							conn.getConnectionList().get(0).duplicateUproc(cabrin_template, table.get(uprKey).get(s));
 						
 					}
 				}

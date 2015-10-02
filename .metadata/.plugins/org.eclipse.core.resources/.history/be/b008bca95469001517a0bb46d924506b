@@ -4866,7 +4866,7 @@ public static String getStatus(ExecutionStatus status) {
         		
         		if(deps_cnumber.containsKey(temp.get(key)))
         		{
-        			depCon_oredDep.remove(key);
+        			depCon_oredDep.remove(temp.get(key));
         		}
         	}
 

@@ -4838,9 +4838,6 @@ public static String getStatus(ExecutionStatus status) {
     	if(uprs.containsKey(upr))
     	{
         	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
-        	HashSet<Integer> listOfCNumbers = new HashSet<Integer>();
-        	
-        	
         	LaunchFormula lf = new LaunchFormula();
         	String lfText = uprs.get(upr).getFormula().getFormulaText();
         	System.out.println(upr+" Before "+lfText);
@@ -4849,27 +4846,9 @@ public static String getStatus(ExecutionStatus status) {
         	for(int cdeps=0;cdeps<curDeps.size();cdeps++)
         	{
         		deps_cnumber.put(curDeps.get(cdeps).getUproc(),curDeps.get(cdeps).getNum());
-        		listOfCNumbers.add(curDeps.get(cdeps).getNum());
         	}
-
-        	HashMap<String,String> temp = new HashMap<String,String>();
-        	for(String k : depCon_oredDep.keySet())
-        	{
-        		temp.put(k, depCon_oredDep.get(k));
-        	}
-        	for(String key : temp.keySet())
-        	{
-        		if(!deps_cnumber.containsKey(key))
-        		{
-        			depCon_oredDep.remove(key);
-        		}
-        		
-        		if(deps_cnumber.containsKey(temp.get(key)))
-        		{
-        			depCon_oredDep.remove(key);
-        		}
-        	}
-
+    
+        	
         	SessionControl sessionControl = new SessionControl();
 			sessionControl.setType(SessionControl.Type.ANY_SESSION);
 
@@ -4899,28 +4878,8 @@ public static String getStatus(ExecutionStatus status) {
 								dc.setStatus(Status.ABSENT);
 						        
 								if(curDeps.size()<99)
-								{		
-									
-									Integer cnumber=99;
-									boolean found = false;
-									for(int i=1;i<=99;i++)
-									{
-										if(!listOfCNumbers.contains(i))
-										{
-											cnumber=i;
-											listOfCNumbers.add(cnumber);
-											found=true;
-											break;
-										}
-										
-									}
-									if(!found)
-									{
-										continue;
-									}
-									dc.setNum(cnumber);
-									conditionalDependenciesToBeOred.put(depCon_oredDep.get(key),cnumber);//adds the oringDepCon with number
-
+								{								
+									dc.setNum(99-deps_cnumber.get(key));
 									curDeps.add(dc);
 								}
 				}
@@ -4932,11 +4891,9 @@ public static String getStatus(ExecutionStatus status) {
 			
 			for(String key:depCon_oredDep.keySet())
 			{
-				if(deps_cnumber.containsKey(key)
-						&&conditionalDependenciesToBeOred.containsKey(depCon_oredDep.get(key)) )
+				if(deps_cnumber.containsKey(key))
 				{
 					String cNumber;
-					String cNumber_ored;
 					
 					if(deps_cnumber.get(key)<10)
 					{
@@ -4947,16 +4904,8 @@ public static String getStatus(ExecutionStatus status) {
 						cNumber="=C"+deps_cnumber.get(key);
 					}		
 					
-					if(conditionalDependenciesToBeOred.get(depCon_oredDep.get(key))<10)
-					{
-						cNumber_ored="=C0"+conditionalDependenciesToBeOred.get(depCon_oredDep.get(key));
-					}
-					else
-					{
-						cNumber_ored="=C"+conditionalDependenciesToBeOred.get(depCon_oredDep.get(key));
-					}
 					
-					lfText=lfText.replace(cNumber, "("+cNumber+" OR "+cNumber_ored+")");
+					lfText=lfText.replace(cNumber, "("+cNumber+" OR =C"+(99-deps_cnumber.get(key))+")");
 								
 				}
 			}
@@ -4969,7 +4918,7 @@ public static String getStatus(ExecutionStatus status) {
     		
     		
     		
-    		System.out.println(upr+" After  "+lf.getFormulaText());
+    		System.out.println(upr+" After "+lf.getFormulaText());
     		uprs.get(upr).setDependencyConditions(curDeps);
     		uprs.get(upr).setFormula(lf);
     		try{
