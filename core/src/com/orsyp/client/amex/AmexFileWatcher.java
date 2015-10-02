@@ -4,6 +4,7 @@ package com.orsyp.client.amex;
 // Scenario 2 : If file shows up, create a CARBIN_<MAINJOB> uproc and launch CABRIN_<MAINJOB>. If successful, trigger provoked task on the session <MAINJOB> uproc belongs to
 // Scenario 3 : If file shows up, create a CABRIN_<MAINJOB> uproc and launch CABRIN_<MAINJOB>. Do nothing afterwards.
 // The condition of CABRIN_<JOB> being triggered uniquely still holds for all 3 scenarios.
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
@@ -27,11 +28,9 @@ public class AmexFileWatcher {
 
 	private static HashMap<String,ArrayList<String>> reference = new HashMap<String,ArrayList<String>>();
 	//this will have FileName,MainJob,Cabrin_Template_toUse,InWhatSessionIsMyMainUproc
+	
 	private static ArrayList<ExecutionStatus> array  = new ArrayList<ExecutionStatus>();
 	
-	public static String cabrin_template_scenario_1 = "CABRIN_TEMPLATE";
-	public static String cabrin_template_scenario_2 = "CABRIN_TEMPLATE";
-	public static String cabrin_template_scenario_3 = "CABRIN_TEMPLATE";
 
 	public static String currentMu = "AMEX-E0";
 	public static String currentUser = "casm_dellc";
@@ -50,18 +49,20 @@ public class AmexFileWatcher {
 		long sleep = Long.valueOf(Integer.toString((Integer.parseInt(sleeptime)*1000)));
 		
 		
-		
+		System.out.println("Version 30/09/2015");
 		array.add(ExecutionStatus.Running);
 		array.add(ExecutionStatus.Aborted);
 		array.add(ExecutionStatus.Pending);
 		array.add(ExecutionStatus.EventWait);
+		array.add(ExecutionStatus.Launching);
+		
 		
 		Connector conn = new Connector(configFile,true,"CABRIN_",true,"",true,"PROVOKED_");
 		DuApiConnection duapi = conn.getConnectionList().get(0);
 		
 		
 		final File folder = new File(path);
-		int count =1;
+
 		int loop = 1;
 		int spartNumber = 0;
 		
@@ -71,6 +72,8 @@ public class AmexFileWatcher {
 			System.out.println();
 			System.out.println(" LOOP #"+loop);
 			System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			
+			reference.clear();
 			readReferenceFile(refFile);
 			
 			HashMap<String,String> currentFiles = getFilesToProcess(folder);//CABRINUPROC_FILENAMETOPROCESS
@@ -80,8 +83,7 @@ public class AmexFileWatcher {
 			
 					for(String cabUprocKey : currentFiles.keySet())
 					{
-						
-						String cabrinTemplate_toUse=cabrin_template_scenario_1;
+						String cabrinTemplate_toUse="";
 		
 						if(duapi.getExecutionList(cabUprocKey, array).size()==0)
 						{
@@ -92,7 +94,7 @@ public class AmexFileWatcher {
 							java.util.Date date3= new java.util.Date();
 							Timestamp ts3 = new Timestamp(date3.getTime());
 							
-							System.out.println(ts3+": count="+count+"- Processing CABRIN_UPROC <"+cabUprocKey+"> with file \""+currentFiles.get(cabUprocKey)+"\"");
+							System.out.println(ts3+":  Processing CABRIN_UPROC <"+cabUprocKey+"> with file \""+currentFiles.get(cabUprocKey)+"\"");
 							
 							int scenario=1;
 							String fileEntryKeyForRef = getGenericKeyFileName(currentFiles.get(cabUprocKey));
@@ -111,9 +113,12 @@ public class AmexFileWatcher {
 								cabrinTemplate_toUse=entries.get(1);
 								
 							}
+							else
+							{
+								continue;
+							}
 							
 							
-							count++;
 							
 							if(!duapi.doesUprocExist(cabUprocKey))
 							{
@@ -429,7 +434,7 @@ public class AmexFileWatcher {
 
         			java.util.Date date10= new java.util.Date();
 	            	Timestamp ts10 = new Timestamp(date10.getTime());
-	        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\" in reference file");
+	        		System.out.println(ts10+": No mapping found for \""+files[f].getName()+"\"");
         		
 	        	}
 	        	
@@ -449,8 +454,8 @@ public class AmexFileWatcher {
 				java.util.Date date6= new java.util.Date();
 				Timestamp ts6 = new Timestamp(date6.getTime());
 				
-				System.out.println(ts6+": CABRIN_UPROC <"+ cabKey +"> will be processed with file "+currentFilesToProcess.get(cabKey));
-				line =(ts6+": CABRIN_UPROC <"+ cabKey +"> will be processed with file "+currentFilesToProcess.get(cabKey));
+				System.out.println(ts6+": CABRIN <"+ cabKey +"> will be processed with file "+currentFilesToProcess.get(cabKey));
+				line =(ts6+": CABRIN <"+ cabKey +"> will be processed with file "+currentFilesToProcess.get(cabKey));
 
 			}
 
@@ -524,31 +529,7 @@ public class AmexFileWatcher {
 		
 		return null;
 	}
-	public static String getNumberFromFileName(String fileName)
-	{
-		if(EndsWithGxxxxVxxDotTrigger(fileName))
-		{
-			return getGoogleNumber(fileName);
-		}
-		
-		fileName=fileName.replace(".TRIGGER", "");
-		int l = fileName.length();
-		
-		if(l>2 )
-		{
-			if(Pattern.matches("\\d\\d",fileName.substring(l-2, l)))
-			{
-				return fileName.substring(l-2, l);
-			}
-			else
-				return "99";
-		}
-		else
-		{
-			return "99";
-		}
-		
-	}
+
 	
 	public static void readReferenceFile(String fileName) throws IOException
 	{

@@ -8,9 +8,7 @@
 <fullyQualifiedTypeName name="com.orsyp.api.execution.ExecutionStatus"/>
 <fullyQualifiedTypeName name="java.io.File"/>
 <fullyQualifiedTypeName name="java.lang.Integer"/>
-<fullyQualifiedTypeName name="com.orsyp.tools.ps.DuApiConnection"/>
 <fullyQualifiedTypeName name="com.orsyp.api.Variable"/>
-<fullyQualifiedTypeName name="com.orsyp.api.uproc.Uproc"/>
 <fullyQualifiedTypeName name="com.google.common.io.Files"/>
 <fullyQualifiedTypeName name="java.nio.file.Path"/>
 <fullyQualifiedTypeName name="com.orsyp.tools.ps.Connector"/>
@@ -22,7 +20,12 @@
 <fullyQualifiedTypeName name="java.util.Arrays"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.NonSimultaneityCondition"/>
 <fullyQualifiedTypeName name="com.orsyp.tools.ps.InMemoryFile"/>
-<fullyQualifiedTypeName name="java.util.ArrayList"/>
-<fullyQualifiedTypeName name="java.util.HashMap"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.ResourceCondition"/>
+<fullyQualifiedTypeName name="java.io.FilenameFilter"/>
+<fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.Uproc"/>
+<fullyQualifiedTypeName name="com.orsyp.tools.ps.DuApiConnection"/>
+<fullyQualifiedTypeName name="com.orsyp.api.mu.Mu"/>
+<fullyQualifiedTypeName name="com.orsyp.api.session.Session"/>
 </qualifiedTypeNameHistroy>

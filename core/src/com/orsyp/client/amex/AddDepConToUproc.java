@@ -101,18 +101,25 @@ public class AddDepConToUproc {
 				catch(Exception e)
 				{
 					System.out.println(uprKey+" failed");
+					e.printStackTrace();
 					continue;
 				}
 				
 		}
 		
-		for(String key:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+	/*	for(String key:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
 		{
-			if(!table.containsKey(key)&& !key.contains("CABRIN_"))
-			{
-				conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(key).delete();
-			}
+			
+				conn.getConnectionList().get(0).removeDuplicatedDepCons(key);			
 		}
+		
+		for(String uproc:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		{
+			if(!table.keySet().contains(uproc))
+			{
+				conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uproc).delete();
+			}
+		}*/
 				
 	
 	}

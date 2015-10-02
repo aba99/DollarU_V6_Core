@@ -7,6 +7,6 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.orsyp.client.amex.AddDepConToUproc"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;C:\Users\administrator\Desktop\Projects\Amex\config.conf&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\CreateDependencyIssue\CABRIN_UPROCs.csv&quot;"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;C:\Users\administrator\Desktop\Projects\Amex\config.conf&quot; &quot;C:\Users\administrator\Desktop\Projects\Amex\CreateDependencyIssue\test.csv&quot;"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="core"/>
 </launchConfiguration>

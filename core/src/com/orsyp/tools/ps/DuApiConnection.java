@@ -4832,6 +4832,104 @@ public static String getStatus(ExecutionStatus status) {
     	
     }
 
+   public void addConditionalDependency(String upr,HashMap<String,String> depCon_oredDep) throws UniverseException
+    {
+	   System.out.println();
+    	if(uprs.containsKey(upr))
+    	{
+        	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
+        	LaunchFormula lf = new LaunchFormula();
+        	String lfText = uprs.get(upr).getFormula().getFormulaText();
+        	System.out.println(upr+" Before "+lfText);
+        	HashMap<String,Integer> deps_cnumber = new HashMap<String,Integer>();
+        	
+        	for(int cdeps=0;cdeps<curDeps.size();cdeps++)
+        	{
+        		deps_cnumber.put(curDeps.get(cdeps).getUproc(),curDeps.get(cdeps).getNum());
+        	}
+    
+        	
+        	SessionControl sessionControl = new SessionControl();
+			sessionControl.setType(SessionControl.Type.ANY_SESSION);
+
+			MuControl muControl= new MuControl();			
+			muControl.setType (Type.SAME_MU);//constants for the dependency condition
+        	
+			for(String key:depCon_oredDep.keySet())
+			{
+				if(deps_cnumber.containsKey(key))
+				{
+					
+								DependencyCondition dc = new DependencyCondition();
+								dc.setExpected(true);//expected is chosen
+							    dc.setFatal(false);//fatal box is NOT checked
+								dc.setUserControl(UserControl.ANY);//user is any
+								dc.setFunctionalPeriod(FunctionalPeriod.Day);
+								dc.setMuControl (muControl);
+								dc.setSessionControl(sessionControl);
+								dc.setNum(99-deps_cnumber.get(key));
+								dc.setUproc(depCon_oredDep.get(key));
+								dc.setStatus(Status.ABSENT);
+						        
+								curDeps.add(dc);
+				}
+				else
+				{
+					System.out.println(upr+" does not have "+key+" in LF on"+getNode()+"-"+getArea());
+				}
+			}
+			
+			for(String key:depCon_oredDep.keySet())
+			{
+				if(deps_cnumber.containsKey(key))
+				{
+					String cNumber;
+					
+					if(deps_cnumber.get(key)<10)
+					{
+						cNumber="=C0"+deps_cnumber.get(key);
+					}
+					else
+					{
+						cNumber="=C"+deps_cnumber.get(key);
+					}		
+					
+					
+					lfText=lfText.replace(cNumber, "("+cNumber+" OR =C"+(99-deps_cnumber.get(key))+")");
+								
+				}
+			}
+			
+			
+    					
+    		lf.appendText(lfText);
+
+    	    
+    		
+    		
+    		
+    		System.out.println(upr+" After "+lf.getFormulaText());
+    		uprs.get(upr).setDependencyConditions(curDeps);
+    		uprs.get(upr).setFormula(lf);
+    		try{
+    		uprs.get(upr).update();			
+    		}
+    		catch(UniverseException e)
+    		{
+    			System.out.println("Error "+ lfText+" on "+upr);
+    		}
+			
+        	System.out.println("------------------------");
+    	}
+    	else
+    	{
+    		System.out.println("Uproc "+upr+" not found ");
+    		return;
+    		
+    	}
+    }
+    
+    
     public void orDepWithThisDep(String upr,String depCon,String oredDep) throws UniverseException
     {
     	if(uprs.containsKey(upr))
@@ -5018,21 +5116,37 @@ public static String getStatus(ExecutionStatus status) {
     {
     	if(uprs.containsKey(upr))
     	{
-    		System.out.println("Adding deps on "+upr);
-        	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
-
+        	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();	
         	
+        	String currentlfText="";
+        	
+        	if(uprs.get(upr).getFormula()!=null)
+        	{
+        		
+        		if(uprs.get(upr).getFormula().getFormulaText()!=null)
+        		{
+        		
+        		currentlfText= uprs.get(upr).getFormula().getFormulaText();
+        	
+        		}
+        	}
+        	
+        	
+        	
+        	HashSet<Integer> listOfCNumbers = new HashSet<Integer>();
         	ArrayList<String> actualDepsToAdd = new ArrayList<String>();
         	ArrayList<String> curNames = new ArrayList<String>();
+        	
         	
         	for(int cdeps=0;cdeps<curDeps.size();cdeps++)
         	{
         		curNames.add(curDeps.get(cdeps).getUproc());
+        		listOfCNumbers.add(curDeps.get(cdeps).getNum());
         	}
     
         	for(int newdeps=0;newdeps<depconHashToAdd.size();newdeps++)
         	{
-        		if(!curNames.isEmpty() || !curNames.contains(depconHashToAdd.get(newdeps)) )//&& doesUprocExist(depconHashToAdd.get(newdeps)))
+        		if(!curNames.contains(depconHashToAdd.get(newdeps)) )//&& doesUprocExist(depconHashToAdd.get(newdeps)))
         		{
         			
         			if(doesUprocExist(depconHashToAdd.get(newdeps)))
@@ -5045,7 +5159,7 @@ public static String getStatus(ExecutionStatus status) {
         	
         	
         	
-        	
+        	HashMap<String,Integer> newDepsToAddWithTheirNumber = new HashMap<String,Integer>();
         	
         	
         	SessionControl sessionControl = new SessionControl();
@@ -5070,59 +5184,60 @@ public static String getStatus(ExecutionStatus status) {
 				dc.setMuControl (muControl);
 				dc.setSessionControl(sessionControl);
 				
-				dc.setNum(1);
+				Integer cnumber=99;
+				boolean found = false;
+				for(int i=1;i<=99;i++)
+				{
+					if(!listOfCNumbers.contains(i))
+					{
+						cnumber=i;
+						listOfCNumbers.add(cnumber);
+						found=true;
+						break;
+					}
+					
+				}
+				if(!found)
+				{
+					continue;
+				}
+				dc.setNum(cnumber);
+				newDepsToAddWithTheirNumber.put(depUpr, cnumber);
 				dc.setUproc(depUpr);
 				dc.setStatus(Status.COMPLETED);
 		        
 				curDeps.add(dc);
 			}
 			
+		boolean first = true;
+		
+			for(String depKeyToAdd:newDepsToAddWithTheirNumber.keySet())
+			{
+				String cpart;
+				
+				if(newDepsToAddWithTheirNumber.get(depKeyToAdd)<10)
+				{
+					cpart="=C0"+newDepsToAddWithTheirNumber.get(depKeyToAdd);
+				}
+				else
+				{
+					cpart="=C"+newDepsToAddWithTheirNumber.get(depKeyToAdd);
+				}
+				
+					if(!first)
+					{
+						currentlfText+=" AND "+cpart;
+					}
+					else
+					{
+						currentlfText+=cpart;
+						first=false;
+					}
+			}
+			
 			LaunchFormula lf = new LaunchFormula();
-			String text;
-			int depNum;
-    		
-    		for(int d=0;d<curDeps.size();d++)
-    		{
-    			
-    			curDeps.get(d).setNum(d+1);
-    		}   
-    	    			
-   
-    		for(int q=0;q<curDeps.size();q++)
-    		{
-    			depNum=curDeps.get(q).getNum();	
-    					        
-    					        if(q != (curDeps.size()-1))
-    							{					
-    						        	if(depNum<10)
-    									{
-    										text = " =C0"+depNum+" AND";// OK
-    									}
-    									else 
-    									{
-    										text = " =C"+depNum+" AND";
-    									}
-    							}
-    							else
-    							{
-    								if(depNum<10)
-    								{
-    									text = " =C0"+depNum;// OK
-    								}
-    								else 
-    								{
-    									text = " =C"+depNum;
-    								}
-    					       
-    						
-    				        		}
-    					
-    					lf.appendText(text);
+			lf.appendText(currentlfText);
 
-    	    			
-    	    }
-    			
-    			
     		uprs.get(upr).setDependencyConditions(curDeps);
     		uprs.get(upr).setFormula(lf);
     		System.out.println("- "+uprs.get(upr).getName()+" has "+actualDepsToAdd+" added");
@@ -5555,6 +5670,102 @@ public static String getStatus(ExecutionStatus status) {
 			e.printStackTrace();
 		}
 	}
+	
+    public void removeDuplicatedDepCons(String upr) throws UniverseException
+    {
+    	if(uprs.containsKey(upr))
+    	{
+        	Vector<DependencyCondition> curDeps = uprs.get(upr).getDependencyConditions();
+        	Vector<DependencyCondition> curDeps_noDup = new Vector<DependencyCondition>();
+        	
+              	HashMap<String,DependencyCondition> deps = new HashMap<String,DependencyCondition>();
+        	
+        	for(int cdeps=0;cdeps<curDeps.size();cdeps++)
+        	{
+        		deps.put(curDeps.get(cdeps).getUproc(),curDeps.get(cdeps));
+        	}
+    
+        	
+        
+        	
+        	
+        	
+        	
+        	
+        	SessionControl sessionControl = new SessionControl();
+			sessionControl.setType(SessionControl.Type.ANY_SESSION);
+
+			MuControl muControl= new MuControl();			
+			muControl.setType (Type.SAME_MU);//constants for the dependency condition
+        	
+		
+			
+			for(String depUpr:deps.keySet())
+			{
+			
+				curDeps_noDup.add(deps.get(depUpr));
+			}
+			
+			LaunchFormula lf = new LaunchFormula();
+			String text;
+			int depNum;
+    		
+    		for(int d=0;d<curDeps_noDup.size();d++)
+    		{
+    			
+    			curDeps_noDup.get(d).setNum(d+1);
+    		}   
+    	    			
+   
+    		for(int q=0;q<curDeps_noDup.size();q++)
+    		{
+    			depNum=curDeps_noDup.get(q).getNum();	
+    					        
+    					        if(q != (curDeps_noDup.size()-1))
+    							{					
+    						        	if(depNum<10)
+    									{
+    										text = " =C0"+depNum+" AND";// OK
+    									}
+    									else 
+    									{
+    										text = " =C"+depNum+" AND";
+    									}
+    							}
+    							else
+    							{
+    								if(depNum<10)
+    								{
+    									text = " =C0"+depNum;// OK
+    								}
+    								else 
+    								{
+    									text = " =C"+depNum;
+    								}
+    					       
+    						
+    				        		}
+    					
+    					lf.appendText(text);
+
+    	    			
+    	    }
+    			
+    			
+    		uprs.get(upr).setDependencyConditions(curDeps_noDup);
+    		uprs.get(upr).setFormula(lf);
+    		uprs.get(upr).update();			
+			
+			
+			
+    	}
+    	else
+    	{
+    		System.out.println("Uproc "+upr+" not found ");
+    		return;
+    		
+    	}
+    }
     
 }
 
