@@ -1,0 +1,16 @@
+package com.orsyp.supertools.ps;
+
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.WatchService;
+
+public class WatcherService {
+
+	public static void main (String args[]) throws IOException{
+	
+		
+		WatchService watcher = FileSystems.getDefault().newWatchService();
+	
+	}
+	
+}

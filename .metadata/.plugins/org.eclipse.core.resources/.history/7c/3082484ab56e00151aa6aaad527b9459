@@ -1,0 +1,68 @@
+package com.orsyp.client.amex;
+
+
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import au.com.bytecode.opencsv.CSVReader;
+
+import com.orsyp.tools.ps.Connector;
+
+
+
+public class RemoveDepConFromUpr {
+
+	
+	
+	public static void main(String[] args) throws Exception {
+
+		String fileName = args[0];
+		String uproc = args[1];
+		
+		
+		
+		Connector conn = new Connector(fileName,true,"AHMAD",false,"",false,"");
+		
+		
+		
+		
+		for(String uprKey:table.keySet())
+		{
+			
+			try{
+				
+					conn.getConnectionList().get(0).addDepToUproc(uprKey,table.get(uprKey));
+					
+					
+				}
+				catch(Exception e)
+				{
+					System.out.println(uprKey+" failed");
+					e.printStackTrace();
+					continue;
+				}
+				
+		}
+		
+	/*	for(String key:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		{
+			
+				conn.getConnectionList().get(0).removeDuplicatedDepCons(key);			
+		}
+		
+		for(String uproc:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		{
+			if(!table.keySet().contains(uproc))
+			{
+				conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uproc).delete();
+			}
+		}*/
+				
+	
+	}
+
+}
+
+	
+

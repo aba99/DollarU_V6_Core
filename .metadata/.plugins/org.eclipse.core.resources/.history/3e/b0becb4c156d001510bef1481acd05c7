@@ -1,0 +1,10 @@
+package com.orsyp.supertools.ps;
+
+public class WatchService {
+
+	public static void main (String args[]){
+	WatchService watcher = FileSystems.getDefault().newWatchService();
+	
+	}
+	
+}

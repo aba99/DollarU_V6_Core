@@ -2338,18 +2338,19 @@ public HashMap<String,Uproc> getUprocHashMap_from_outside() throws Exception {
 }
 
 
-public void createInternalScript(Uproc obj,String[]lines) throws UniverseException {
+public static void createInternalScript(Uproc obj,String[]lines) throws UniverseException {
     InternalScript data = new InternalScript(obj);
     
     data.setLines(lines);// put your script here
 
     obj.setInternalScript(data);
     obj.setSpecificData(data);
+    //obj.update();
     data.save();
     //printf("Uproc [%s] => specific data created.\n", obj.getIdentifier()
      //       .getName());
 }
-public  String[] extractInternalScript(Uproc u) throws UniverseException {
+public static String[] extractInternalScript(Uproc u) throws UniverseException {
     
     InternalScript script = new InternalScript(u);
     
@@ -2365,6 +2366,97 @@ public  String[] extractInternalScript(Uproc u) throws UniverseException {
     	return new String[]{"Error copying script"};
     }
 }
+
+public void fixUprocVariablesAndScript(Uproc upr) throws UniverseException
+{
+	
+	
+	if(upr.getType().equalsIgnoreCase("CL_INT"))
+	{
+		String[] currentScriptLines =extractInternalScript(upr);
+		
+		for(int j=0;j<currentScriptLines.length;j++)
+		{
+			if(currentScriptLines[j].startsWith("M") 
+					||currentScriptLines[j].startsWith("P"))
+			{
+				System.out.print("Fixing Uproc "+upr.getName()+" -- Replacing \""+currentScriptLines[j]+"\" with ");
+				
+				if(currentScriptLines[j].endsWith("y\"`"))
+				{
+					currentScriptLines[j]=currentScriptLines[j].replaceAll("y\"`", "d\"`");
+					upr.setLabel("Fixed");
+
+				}
+				
+				if(currentScriptLines[j].endsWith("m\"`"))
+				{
+					currentScriptLines[j].replaceAll("m\"`", "d\"`");
+					upr.setLabel("Fixed");
+				}
+				
+				System.out.println(currentScriptLines[j]);
+				System.out.println();
+
+			}
+		}
+		
+		Vector<Variable> variables = upr.getVariables();
+		boolean containsVariable = false;
+		String toInclude ="";
+		
+		if(variables.size()>1)
+		{
+			if(variables.get(1).getName().equals("COMMAND_PART2"))
+			{
+				
+				
+				if(variables.get(1).getValue().contains("M9OSJYYY"))
+				{
+					containsVariable = true;
+					toInclude = "M9OSJYYY=`$UNI_DIR_EXEC/uxdat \"yyyymmdd\" $S_DATRAIT \"yy\" \"-9d\"`"; 
+				}
+				else if (variables.get(1).getValue().contains("M9OSDDD"))
+				{
+					containsVariable= true;
+					toInclude = "M9OSDDD=`$UNI_DIR_EXEC/uxdat \"yyyymmdd\" $S_DATRAIT \"ddd\" \"-9d\"`";
+				}
+				else
+				{
+					toInclude="";
+				}
+				
+			}
+		}
+		
+		for(int j=0;j<currentScriptLines.length;j++)
+		{
+			if(currentScriptLines[j].contains("eval ${COMMAND_PART1}${COMMAND_PART2}"))
+			{
+				if(containsVariable)
+				{
+						
+					currentScriptLines[j]=currentScriptLines[j].replace("eval ${COMMAND_PART1}${COMMAND_PART2}", toInclude+"\neval ${COMMAND_PART1}${COMMAND_PART2}");
+				
+					System.out.println("Fixing Uproc "+upr.getName()+" -- Adding \""+toInclude+"\"");
+					System.out.println();
+				}	
+			
+			}
+			
+		}
+		
+		createInternalScript(upr,currentScriptLines);
+		upr.update();
+		
+		
+	}
+	
+}
+
+
+
+
 public void updateScript(Uproc obj,String a,String b) throws Exception
 {
 	if(getUprocHashMap_from_outside().containsKey(obj.getName()))
@@ -2384,6 +2476,10 @@ public void updateScript(Uproc obj,String a,String b) throws Exception
 			
 		if(currentScriptLines[j].contains(a))
 		{
+			SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHH");
+			String label = uproc.getLabel();
+			uproc.setLabel(label+"_"+sdf.format(new Date()));
+			uproc.update();
 			currentScriptLines[j]=currentScriptLines[j].replace(a, b);
 			System.out.println("UPR ["+uproc.getName()+"] : Replacing "+"\""+a+"\" with \""+b+"\"");
 
@@ -4595,6 +4691,100 @@ public static String getStatus(ExecutionStatus status) {
             
     	}
     }
+    public void removeDepsFromUprocClean(String upr,ArrayList<String> depconHashToRemove) throws Exception
+	{
+		
+    	if(uprs.containsKey(upr))
+    	{
+    		Uproc currentUproc = uprs.get(upr);
+			Vector<DependencyCondition> curDependencies = currentUproc.getDependencyConditions();
+			Vector<DependencyCondition> newDependencies = new Vector<DependencyCondition>();
+			
+			String currentLF = currentUproc.getFormula().getFormulaText();
+			
+			HashMap<String,String> nameDep_Cnumber = new HashMap<String,String>();
+    		
+			
+			for(int i=0;i<curDependencies.size();i++)
+			{			
+				String cnum = null;
+				
+				if(curDependencies.get(i).getNum()<10)
+				{
+					cnum="=C0"+curDependencies.get(i).getNum();
+				}
+				else
+				{
+					cnum="=C"+curDependencies.get(i).getNum();
+				}
+				nameDep_Cnumber.put(curDependencies.get(i).getUproc(), cnum);
+				
+			}
+					
+			for(String depKey:depconHashToRemove)
+			{
+				if(nameDep_Cnumber.containsKey(depKey))
+				{
+					String toRemove=nameDep_Cnumber.get(depKey);
+					
+					if(currentLF.contains(" AND "+toRemove))
+					{
+						currentLF=currentLF.replaceAll(" AND "+toRemove, "");
+
+					}
+					else if (currentLF.contains(toRemove+" AND "))
+					{
+						currentLF=currentLF.replace(toRemove+" AND ","");
+					}
+					else
+					{
+						continue;
+					}
+			
+				}
+			}
+			
+			for(int c=0;c<curDependencies.size();c++)
+			{
+				if(!depconHashToRemove.contains(curDependencies.get(c).getUproc()))
+				{
+						newDependencies.add(curDependencies.get(c));
+				}
+						
+			}
+			
+    	//System.out.println(newDependencies.size());
+
+				
+    			//System.out.println("Avant "+currentUproc.getFormula().getFormulaText());
+    		currentUproc.setDependencyConditions(newDependencies);
+    		LaunchFormula newFormula = new LaunchFormula();
+    		newFormula.appendText(currentLF.trim());
+    		currentUproc.setFormula(newFormula);
+			//System.out.println("Apres "+currentLF.trim());
+
+    		currentUproc.update();
+			//System.out.println("Apres 3 "+currentUproc.getFormula().getFormulaText());
+
+			
+    	}
+			
+		
+	}
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     public void removeDepsFromUproc(String upr,ArrayList<String> depconHashToRemove) throws Exception
 	{
@@ -4686,7 +4876,7 @@ public static String getStatus(ExecutionStatus status) {
 			}
 			else
 			{//if no booboo found, set1 is empty. then just delete the uproc to only keep the affected list on the node for easier extraction/identification
-				currentUproc.delete();
+				//currentUproc.delete();
 			}
 		}
 		

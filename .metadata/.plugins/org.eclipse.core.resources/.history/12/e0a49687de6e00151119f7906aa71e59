@@ -1,0 +1,35 @@
+package com.orsyp.client.amex;
+
+
+
+
+import java.util.ArrayList;
+
+import com.orsyp.tools.ps.Connector;
+
+
+
+public class RemoveDepConFromUpr {
+
+	
+	
+	public static void main(String[] args) throws Exception {
+
+		String fileName = args[0];
+		
+		
+		
+		Connector conn = new Connector(fileName,true,"AHMAD",false,"",false,"");
+		ArrayList<String> test = new ArrayList<String>();
+		test.add("AHMAD_DEP");
+		
+		conn.getConnectionList().get(0).removeDepsFromUprocClean("AHMAD", test);
+
+				
+	
+	}
+
+}
+
+	
+
