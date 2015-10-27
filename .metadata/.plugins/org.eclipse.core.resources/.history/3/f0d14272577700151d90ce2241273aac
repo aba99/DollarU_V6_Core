@@ -1,0 +1,75 @@
+package com.orsyp.client.amex;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import com.orsyp.tools.ps.Connector;
+
+import au.com.bytecode.opencsv.CSVReader;
+
+public class EnableDisableTasks {
+
+	static ArrayList<String> toEnableOrDisable = new ArrayList<String>();
+	
+	public static void main(String[] args) throws Exception {
+		
+		String configFile = args[0];
+		String logList = args[1];
+		String enableOrDisable = args[2];
+		
+
+		
+		readListOfTaskNames(logList);
+		Connector conn = new Connector(configFile,false,"",false,"",true,"");
+		for(String tskKey:conn.getConnectionList().get(0).getTaskHashMap_from_outside().keySet())
+		{
+			if(toEnableOrDisable.contains(tskKey))
+			{
+				if(enableOrDisable.equalsIgnoreCase("enable"))
+				{
+					if(!conn.getConnectionList().get(0).getTaskHashMap_from_outside().get(tskKey).isActive())
+					{
+						conn.getConnectionList().get(0).getTaskHashMap_from_outside().get(tskKey).enable();
+						
+					}
+				}
+				else if(enableOrDisable.equalsIgnoreCase("disable"))
+				{
+					if(conn.getConnectionList().get(0).getTaskHashMap_from_outside().get(tskKey).isActive())
+					{
+						conn.getConnectionList().get(0).getTaskHashMap_from_outside().get(tskKey).disable();
+						
+					}
+				}
+				else
+				{
+					continue;
+				}
+			}
+		}
+
+	}
+
+	public static void readListOfTaskNames(String fileName) throws IOException
+	{
+		 @SuppressWarnings("resource")
+		CSVReader reader = new CSVReader(new FileReader(fileName),',', '\"', '\0');
+			
+			String [] line;			
+
+			//parse lines
+			while ((line = reader.readNext()) != null) 
+		    {	    	
+				
+		        if(line.length>1)
+		        {
+		        	String key=line[0];
+		        	
+		        	toEnableOrDisable.add(key);
+		        		
+		        }
+		    }	
+	}
+	
+}

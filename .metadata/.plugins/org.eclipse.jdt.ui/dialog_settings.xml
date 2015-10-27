@@ -19,16 +19,16 @@
 	</section>
 	<section name="FatJarPackageWizard">
 		<item value="C:\Users\administrator\Desktop\eclipse_workspaces\v6_core" key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION"/>
-		<item value="RemoveDepConFromUpr - core" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
-		<item value="C:\Users\administrator\Desktop\Projects\Amex\removeDepFromUpr.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
+		<item value="EnableDisableTasks - core" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
+		<item value="C:\Users\administrator\Desktop\Projects\Amex\enable_disable_tsk.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
 		<item value="false" key="FatJarPackageWizardPage.ANTSCRIPT_SAVE"/>
 		<item value="1" key="FatJarPackageWizardPage.LIBRARY_HANDLING"/>
 		<list key="FatJarPackageWizardPage.DESTINATION_NAMES_ID">
+			<item value="C:\Users\administrator\Desktop\Projects\Amex\enable_disable_tsk.jar"/>
+			<item value="C:\Users\administrator\Desktop\Projects\StateOfDelaware\removeDuplicatedDepCons.jar"/>
+			<item value="C:\Users\administrator\Desktop\Projects\Amex\fix_dv_upr.jar"/>
 			<item value="C:\Users\administrator\Desktop\Projects\Amex\removeDepFromUpr.jar"/>
 			<item value="C:\Users\administrator\Desktop\Projects\Amex\updateUprScript_v3.jar"/>
-			<item value="C:\Users\administrator\Desktop\Projects\Amex\updateUprScript_v2.jar"/>
-			<item value="C:\Users\administrator\Desktop\Projects\Amex\updateUprScript.jar"/>
-			<item value="C:\Users\administrator\Desktop\Projects\Amex\orConditionalDep.jar"/>
 		</list>
 		<list key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION_HISTORY">
 			<item value="C:\Users\administrator\Desktop\eclipse_workspaces\v6_core.xml"/>

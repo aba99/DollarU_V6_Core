@@ -9,7 +9,6 @@
 <fullyQualifiedTypeName name="java.lang.Integer"/>
 <fullyQualifiedTypeName name="com.orsyp.api.Variable"/>
 <fullyQualifiedTypeName name="com.google.common.io.Files"/>
-<fullyQualifiedTypeName name="com.orsyp.tools.ps.Connector"/>
 <fullyQualifiedTypeName name="java.util.Vector"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.DependencyCondition"/>
 <fullyQualifiedTypeName name="java.util.regex.Pattern"/>
@@ -23,13 +22,14 @@
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.Uproc"/>
 <fullyQualifiedTypeName name="com.orsyp.api.mu.Mu"/>
 <fullyQualifiedTypeName name="com.orsyp.api.session.Session"/>
-<fullyQualifiedTypeName name="com.orsyp.tools.ps.DuApiConnection"/>
 <fullyQualifiedTypeName name="java.nio.file.FileSystems"/>
 <fullyQualifiedTypeName name="java.nio.file.WatchService"/>
 <fullyQualifiedTypeName name="java.nio.file.Path"/>
 <fullyQualifiedTypeName name="java.io.File"/>
 <fullyQualifiedTypeName name="java.nio.file.WatchKey"/>
 <fullyQualifiedTypeName name="java.nio.file.Files"/>
-<fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="com.orsyp.tools.ps.Connector"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="com.orsyp.tools.ps.DuApiConnection"/>
 </qualifiedTypeNameHistroy>

@@ -2366,6 +2366,26 @@ public static String[] extractInternalScript(Uproc u) throws UniverseException {
     	return new String[]{"Error copying script"};
     }
 }
+public ArrayList<String> getUprocsVariables(String variableStrFilter)
+{
+	ArrayList<String> result = new ArrayList<String>();
+	
+	for(String upKey:uprs.keySet())
+	{
+		Vector<Variable> curVec = uprs.get(upKey).getVariables();
+		for(int v=0;v<curVec.size();v++)
+		{
+			if(curVec.get(v).getValue().contains(variableStrFilter))
+			{
+				result.add(upKey);
+				break;
+				
+			}
+		}
+	}
+	
+	return result;
+}
 
 public void fixUprocVariablesAndScript(Uproc upr) throws UniverseException
 {
@@ -2391,7 +2411,7 @@ public void fixUprocVariablesAndScript(Uproc upr) throws UniverseException
 				
 				if(currentScriptLines[j].endsWith("m\"`"))
 				{
-					currentScriptLines[j].replaceAll("m\"`", "d\"`");
+					currentScriptLines[j]=currentScriptLines[j].replaceAll("m\"`", "d\"`");
 					upr.setLabel("Fixed");
 				}
 				
@@ -3443,6 +3463,34 @@ public static String getStatus(ExecutionStatus status) {
        		atTask.update();
        		
        		
+    	}
+    }
+    public void updateLWStartTimeOnOptTask(String tsk,String lwStart) throws UniverseException
+    {//lwStart should have HHmm format (4 digits)
+    	
+    	if(tsks.containsKey(tsk))
+    	{
+    		if(tsks.get(tsk).getTaskType().equals(TaskType.Optional))
+    		{
+    			TaskPlanifiedData tpd = new TaskPlanifiedData ();
+    		    
+    			tpd=(TaskPlanifiedData)tsks.get(tsk).getSpecificData();
+        
+    			LaunchHourPattern[] launchHourPatterns =tpd.getLaunchHourPatterns() ;         
+
+    		       if(launchHourPatterns.length>0)
+    		       {
+       	            launchHourPatterns[0].setStartTime(lwStart+"00");
+
+    		       }
+    	          
+    		 
+    	            tpd.setLaunchHourPatterns (launchHourPatterns);
+    	            tsks.get(tsk).setSpecificData (tpd);
+    	            tsks.get(tsk).update();
+    	            
+    			
+    		};
     	}
     }
     public void updateOPT_TaskNameAdhoc() throws Exception
@@ -4752,19 +4800,14 @@ public static String getStatus(ExecutionStatus status) {
 				}
 						
 			}
-			
-    	//System.out.println(newDependencies.size());
-
-				
-    			//System.out.println("Avant "+currentUproc.getFormula().getFormulaText());
+		
     		currentUproc.setDependencyConditions(newDependencies);
+    		
     		LaunchFormula newFormula = new LaunchFormula();
+    		     		
     		newFormula.appendText(currentLF.trim());
     		currentUproc.setFormula(newFormula);
-			//System.out.println("Apres "+currentLF.trim());
-
     		currentUproc.update();
-			//System.out.println("Apres 3 "+currentUproc.getFormula().getFormulaText());
 
 			
     	}
@@ -5948,7 +5991,7 @@ public static String getStatus(ExecutionStatus status) {
         	
         	
         	SessionControl sessionControl = new SessionControl();
-			sessionControl.setType(SessionControl.Type.ANY_SESSION);
+			sessionControl.setType(SessionControl.Type.SAME_SESSION);
 
 			MuControl muControl= new MuControl();			
 			muControl.setType (Type.SAME_MU);//constants for the dependency condition
