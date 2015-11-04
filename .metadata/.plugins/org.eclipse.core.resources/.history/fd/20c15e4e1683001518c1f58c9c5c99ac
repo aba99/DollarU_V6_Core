@@ -1,0 +1,126 @@
+package com.orsyp.client.amex;
+
+//this code reads through all uprocs and identifies the 3 types of session controls on DepCons. It outputs everything into
+// a hash map that will contain UPR|DEPUPR in an arrayList. 3 types of arraylists (ANY,SAME,SAME_EXEC) .
+// Good luck. Trust yourself, you thought it out properly.
+
+import java.util.Vector;
+
+import com.orsyp.api.uproc.DependencyCondition;
+import com.orsyp.api.uproc.ProcessingDateControl;
+import com.orsyp.api.uproc.ProcessingDateControl.DayType;
+import com.orsyp.tools.ps.Connector;
+
+
+
+public class FixDependencyConditionDay {
+
+	public static void main(String[] args) throws Exception {
+
+		String configFile = args[0];
+		String source = args[1];
+		String target = args[2];
+		
+		source = source.toUpperCase().trim();
+		target = target.toUpperCase().trim();
+		
+		DayType dt1 ;
+		DayType dt2 ;
+
+		if(source.contains("WORKED"))
+		{
+			dt1=DayType.WORKING ;
+		}
+		else if(source.contains("CALENDAR"))
+		{
+			dt1=DayType.CALENDAR;
+		}
+		else if(source.contains("CLOSED"))
+		
+		{
+			dt1=DayType.CLOSED;
+		}
+		else if(source.contains("HOLIDAY"))
+		{
+			dt1=DayType.HOLIDAY;
+		}
+		else
+		{
+			dt1=DayType.WORKING;
+		}
+		
+		
+		if(target.contains("WORKED"))
+		{
+			dt2=DayType.WORKING ;
+		}
+		else if(target.contains("CALENDAR"))
+		{
+			dt2=DayType.CALENDAR;
+		}
+		else if(target.contains("CLOSED"))
+		
+		{
+			dt2=DayType.CLOSED;
+		}
+		else if(target.contains("HOLIDAY"))
+		{
+			dt2=DayType.HOLIDAY;
+		}
+		else
+		{
+			dt2=DayType.WORKING;
+		}
+		
+		if(dt1.equals(dt2))
+		{
+			System.out.println("No Change required");
+			System.exit(0);
+			
+		}
+		
+		
+		Connector conn = new Connector(configFile,true,"",false,"",false,"");
+	
+
+		
+		for(String uprKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		{
+			
+			Vector<DependencyCondition> curDeps = conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uprKey).getDependencyConditions();
+			
+			boolean toUpdate = false;
+			
+			for(int d=0;d<curDeps.size();d++)
+			{
+				
+						
+						ProcessingDateControl.CalendarUnit unit = curDeps.get(d).getProcessingDateControl().getCalendarUnitDay();
+/*System.out.println(unit.getDayType());
+System.out.println(unit.getValue());*/
+						if(unit.getDayType().equals(dt1) 
+								&& (unit.getValue()!=0))
+						{
+									
+							unit.setDayType(dt2);
+							curDeps.get(d).getProcessingDateControl().setCalendarUnitDay(unit);
+							toUpdate=true;
+							System.out.println("On Uproc "+uprKey+": Changing day unit on dependency condition "+curDeps.get(d).getUproc()+" from WORKING to CALENDAR");	
+						}
+			}
+			
+			if(toUpdate)
+			{
+				conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uprKey).setDependencyConditions(curDeps);
+				conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uprKey).update();
+			}
+
+			
+		}
+		
+		
+	}	
+		
+	
+
+}

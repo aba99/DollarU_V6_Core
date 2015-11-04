@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="com.orsyp.api.rule.RuleId"/>
-<fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl"/>
 <fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl.Operator"/>
 <fullyQualifiedTypeName name="com.orsyp.util.io.FileUtils"/>
 <fullyQualifiedTypeName name="java.util.Scanner"/>
@@ -32,4 +31,7 @@
 <fullyQualifiedTypeName name="com.orsyp.tools.ps.Connector"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="com.orsyp.tools.ps.DuApiConnection"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl.CalendarUnit"/>
+<fullyQualifiedTypeName name="com.orsyp.api.uproc.ProcessingDateControl.DayType"/>
 </qualifiedTypeNameHistroy>

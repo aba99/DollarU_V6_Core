@@ -1,0 +1,49 @@
+package com.orsyp.client.amex;
+
+//this code reads through all uprocs and identifies the 3 types of session controls on DepCons. It outputs everything into
+// a hash map that will contain UPR|DEPUPR in an arrayList. 3 types of arraylists (ANY,SAME,SAME_EXEC) .
+// Good luck. Trust yourself, you thought it out properly.
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Vector;
+
+import com.orsyp.api.uproc.DependencyCondition;
+import com.orsyp.api.uproc.SessionControl;
+import com.orsyp.tools.ps.Connector;
+
+
+
+public class GetSessionControlsOfDeps {
+
+	public static void main(String[] args) throws Exception {
+
+		String configFile = args[0];
+		
+		
+		Connector conn = new Connector(configFile,true,"",false,"",false,"");
+	
+
+		
+		for(String uprKey:conn.getConnectionList().get(0).getUprocHashMap_from_outside().keySet())
+		{
+			
+			Vector<DependencyCondition> curDeps = conn.getConnectionList().get(0).getUprocHashMap_from_outside().get(uprKey).getDependencyConditions();
+			
+			for(int d=0;d<curDeps.size();d++)
+			{
+				System.out.println(curDeps.get(d).getProcessingDateControl().getCalendarUnitDay());
+
+
+			}
+			
+			
+			
+		}
+		
+		
+	}	
+		
+	
+
+}
